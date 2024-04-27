@@ -1,23 +1,51 @@
 [package]
-name = "cicd-rust"
+name = "stream-processor"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib] # lib
-name = "hello_lib"
+name = "stream_processor"
 path = "src/lib.rs"
-
-# can be removed if only lib crate. Integration testing is done in test directory not in main
-[[bin]] # bin to run HelloWorld
-name = "cicd-rust"
-path = "src/main.rs"
-
 
 [dependencies]
 
 
-[features]
-default = ["feature"]
-feature = []
+# Base
+tokio = { version = "1.36.0", features = ["rt", "rt-multi-thread", "macros"] }
+tracing-log = "0.2" # redirect logs to tracing
+tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] } # to actually print traces
+tracing = { version = "0.1", features = ["log"] } # facade to generate traces
+anyhow = "1"
+thiserror = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
+futures-util = "0.3.28"
+fake = "2.9.2" # create fake test data e.g email adresses etc
+chrono = "0.4.38"
+rand = "0.8.5"
+futures = "0.3.30"
+log = "0.4.21"
+
+# Opentelemetry
+opentelemetry = { version = "0.22", features = ["metrics", "otel_unstable"] }
+opentelemetry_sdk = { version = "0.22", features = ["rt-tokio", "metrics"] }
+#opentelemetry-stdout = { version = "0.3", features = ["trace"] }
+opentelemetry-otlp = { version = "0.15.0", features = ["metrics", "grpc-tonic", "tls-roots"] }
+tracing-opentelemetry = { version = "0.23", features = ["metrics"] }
+opentelemetry-semantic-conventions = "0.14.0"
+
+# KAfka
+rdkafka = { version = "0.36.2" }
+
+# Avro
+apache-avro = { version = "0.16.0", features = ["derive"] }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = "1.0"
+reqwest = { version = "0.12.2", features = ["json"] }
+
+# Object store
+object_store = { version = "0.9", features = ["aws", "azure"] }
+quick-xml = "^0.31.0"
+bytes = "1.5.0" # required by aws feature flag of object store
+parquet = { version = "51.0.0", features = ["async"] }
+arrow = "51.0.0"

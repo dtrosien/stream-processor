@@ -1,4 +1,4 @@
-# stream-processor
+# Stream-Processor
 
 The Streams API is a simple and lightweight Rust library that supports the construction of data streaming pipelines. It
 is designed to implement simple streaming applications quickly and efficiently. It allows developers to define data

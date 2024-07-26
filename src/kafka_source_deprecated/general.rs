@@ -1,4 +1,4 @@
-use crate::stream::ReadMode;
+use crate::stream_deprecated::ReadMode;
 use opentelemetry::propagation::Extractor;
 use opentelemetry::{global, KeyValue};
 use rdkafka::consumer::{CommitMode, Consumer, ConsumerContext, Rebalance, StreamConsumer};

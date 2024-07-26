@@ -6,7 +6,7 @@ pub mod test {
     use tokio::sync::Mutex;
 
     use stream_processor::domain::test::Person;
-    use stream_processor::transformation::Transformation;
+    use stream_processor::transformation_depr::Transformation;
     use tracing::{error, info, trace, warn};
 
     #[tracing::instrument(skip_all)]

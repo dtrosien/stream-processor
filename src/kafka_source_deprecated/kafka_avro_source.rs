@@ -1,10 +1,10 @@
-use crate::avro::confluence_avro::{get_schema, unwrap_from_confluence_header};
-use crate::kafka_source::general::{
+use crate::avro_deprecated::confluence_avro::{get_schema, unwrap_from_confluence_header};
+use crate::kafka_source_deprecated::general::{
     commit_async, create_metrics, derive_amount_of_required_kafka_consumers,
     extract_context_from_header, subscribe_to_topics, KafkaSource,
 };
-use crate::source::{Source, SourceError};
-use crate::stream::ReadMode;
+use crate::source_deprecated::{Source, SourceError};
+use crate::stream_deprecated::ReadMode;
 use anyhow::Error;
 use apache_avro::{from_avro_datum, from_value, AvroSchema, Schema};
 use futures::Stream;

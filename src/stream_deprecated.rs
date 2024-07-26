@@ -1,7 +1,7 @@
-use crate::processor::Processor;
-use crate::sink::Sink;
-use crate::source::Source;
-use crate::transformation::Transformation;
+use crate::processor_deprecated::Processor;
+use crate::sink_deprecated::Sink;
+use crate::source_deprecated::Source;
+use crate::transformation_depr::Transformation;
 use futures_util::future::try_join_all;
 use std::future::Future;
 use std::marker::PhantomData;

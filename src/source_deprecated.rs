@@ -1,5 +1,5 @@
-use crate::processor::error_chain_fmt;
-use crate::stream::ReadMode;
+use crate::processor_deprecated::error_chain_fmt;
+use crate::stream_deprecated::ReadMode;
 use futures::Stream;
 use std::future::Future;
 

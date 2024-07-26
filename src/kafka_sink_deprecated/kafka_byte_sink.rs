@@ -1,5 +1,5 @@
-use crate::kafka_sink::general::{generate_tracing_header, send_bytes_msg, KafkaSink};
-use crate::sink::Sink;
+use crate::kafka_sink_deprecated::general::{generate_tracing_header, send_bytes_msg, KafkaSink};
+use crate::sink_deprecated::Sink;
 use futures_util::future::try_join_all;
 use rdkafka::message::ToBytes;
 use rdkafka::producer::future_producer::OwnedDeliveryResult;

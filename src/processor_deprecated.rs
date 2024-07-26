@@ -1,7 +1,7 @@
-use crate::sink::Sink;
-use crate::source::{Source, SourceError};
-use crate::stream::ReadMode;
-use crate::transformation::Transformation;
+use crate::sink_deprecated::Sink;
+use crate::source_deprecated::{Source, SourceError};
+use crate::stream_deprecated::ReadMode;
+use crate::transformation_depr::Transformation;
 use opentelemetry::{global, KeyValue};
 use std::cmp::min;
 use std::marker::PhantomData;

@@ -1,5 +1,5 @@
-use crate::object_store_sink::general::ToArrow;
-use crate::sink::Sink;
+use crate::object_store_sink_deprecated::general::ToArrow;
+use crate::sink_deprecated::Sink;
 use chrono::Utc;
 use object_store::azure::{MicrosoftAzure, MicrosoftAzureBuilder};
 use object_store::path::Path;

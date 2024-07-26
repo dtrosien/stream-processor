@@ -358,9 +358,9 @@ dependencies = [
 
 [[package]]
 name = "async-trait"
-version = "0.1.80"
+version = "0.1.81"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6fa2087f2753a7da8cc1c0dbfcf89579dd57458e36769de5ac750b4671737ca"
+checksum = "6e0c28dcc82d7c8ead5cb13beb15405b57b8546e93215673ff8ca0349a028107"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -691,6 +691,19 @@ name = "dary_heap"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7762d17f1241643615821a8455a0b2c3e803784b058693d990b11f2dce25a0ca"
+
+[[package]]
+name = "dashmap"
+version = "5.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "978747c1d849a7d2ee5e8adc0159961c48fb7e5db2f06af6723b80123bb53856"
+dependencies = [
+ "cfg-if",
+ "hashbrown 0.14.3",
+ "lock_api",
+ "once_cell",
+ "parking_lot_core",
+]
 
 [[package]]
 name = "deunicode"
@@ -2178,6 +2191,7 @@ dependencies = [
  "base64 0.22.0",
  "bytes",
  "encoding_rs",
+ "futures-channel",
  "futures-core",
  "futures-util",
  "h2 0.4.4",
@@ -2388,6 +2402,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "schema_registry_converter"
+version = "4.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f432569d012f914dff62c52f2d69859bd0e592d83a40fd337c0111ab27bae765"
+dependencies = [
+ "apache-avro",
+ "byteorder",
+ "dashmap",
+ "futures",
+ "reqwest 0.12.4",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2562,6 +2591,7 @@ dependencies = [
  "anyhow",
  "apache-avro",
  "arrow",
+ "async-trait",
  "bytes",
  "chrono",
  "fake",
@@ -2578,6 +2608,7 @@ dependencies = [
  "rand",
  "rdkafka",
  "reqwest 0.12.4",
+ "schema_registry_converter",
  "serde",
  "serde_json",
  "thiserror",

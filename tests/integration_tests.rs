@@ -13,8 +13,8 @@ use stream_processor::kafka_sink::kafka_avro_sink::KafkaAvroSink;
 use stream_processor::kafka_source::general::CustomContext;
 use stream_processor::kafka_source::kafka_avro_source::KafkaAvroSource;
 use stream_processor::object_store_sink::azure_sink::AzureSink;
-use stream_processor::sink::Sink;
-use stream_processor::stream::{run_streams, ReadMode, StreamCreatorBuilder};
+use stream_processor::sink_deprecated::Sink;
+use stream_processor::stream_deprecated::{run_streams, ReadMode, StreamCreatorBuilder};
 use stream_processor::telemetry::{init_metrics, init_test_tracing};
 use tracing::{info, warn};
 

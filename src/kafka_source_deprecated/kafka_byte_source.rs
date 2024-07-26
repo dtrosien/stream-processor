@@ -1,9 +1,9 @@
-use crate::kafka_source::general::{
+use crate::kafka_source_deprecated::general::{
     commit_async, create_metrics, derive_amount_of_required_kafka_consumers,
     extract_context_from_header, subscribe_to_topics, KafkaSource,
 };
-use crate::source::{Source, SourceError};
-use crate::stream::ReadMode;
+use crate::source_deprecated::{Source, SourceError};
+use crate::stream_deprecated::ReadMode;
 use anyhow::Error;
 use futures::Stream;
 use rdkafka::consumer::{Consumer, ConsumerContext, StreamConsumer};

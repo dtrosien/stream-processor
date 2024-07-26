@@ -1,6 +1,6 @@
-use crate::avro::confluence_avro::{post_schema, serialize_to_confluence_avro};
-use crate::kafka_sink::general::{generate_tracing_header, send_bytes_msg, KafkaSink};
-use crate::sink::Sink;
+use crate::avro_deprecated::confluence_avro::{post_schema, serialize_to_confluence_avro};
+use crate::kafka_sink_deprecated::general::{generate_tracing_header, send_bytes_msg, KafkaSink};
+use crate::sink_deprecated::Sink;
 use apache_avro::Schema;
 use futures_util::future::try_join_all;
 use rdkafka::producer::future_producer::OwnedDeliveryResult;

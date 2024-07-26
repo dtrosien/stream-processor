@@ -1,6 +1,6 @@
 // todo check if possible to pass avro namespace via annotations
 
-use crate::object_store_sink::general::ToArrow;
+use crate::object_store_sink_deprecated::general::ToArrow;
 use apache_avro::AvroSchema;
 use arrow::array::{ArrayRef, RecordBatch, StringArray, UInt32Array};
 use arrow::datatypes::{DataType, Field, Schema};

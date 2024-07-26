@@ -4,22 +4,35 @@ use crate::encoder::Encoder;
 use crate::transformation::Transformation;
 use std::sync::Arc;
 
-pub struct Transform
-// todo noch eine variante mit encode ... und mal schaauen ob ich mit crates doch noch als trait object hinbekomme
-{
+pub struct Transform {
     input: Arc<dyn Action>,
-    //encoder: Option<Arc<dyn Encoder<T>>>,
+    encoder: Option<Arc<Encoder>>,
     transformations: Vec<Arc<dyn Transformation>>,
 }
+
+impl Transform {
+    pub fn new(
+        input: Arc<dyn Action>,
+        encoder: Option<Arc<Encoder>>,
+        transformations: Vec<Arc<dyn Transformation>>,
+    ) -> Arc<Self> {
+        Arc::new(Transform {
+            input,
+            encoder,
+            transformations,
+        })
+    }
+}
+
 impl Action for Transform {
     fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
         let input = self.input.execute();
 
-        //self.transformations.execute(result, self.encoder.clone())
         Box::new(input.flat_map(move |container| {
-            self.transformations
-                .iter()
-                .flat_map(move |t| t.execute(container.clone()).into_iter())
+            self.transformations.iter().flat_map(move |t| {
+                t.execute(container.clone(), self.encoder.clone())
+                    .into_iter()
+            })
         }))
     }
 

@@ -8,6 +8,12 @@ pub struct Write {
     data_sink: Arc<dyn DataSink>,
 }
 
+impl Write {
+    pub fn new(input: Arc<dyn Action>, data_sink: Arc<dyn DataSink>) -> Arc<Self> {
+        Arc::new(Write { input, data_sink })
+    }
+}
+
 impl Action for Write {
     fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
         let input = self.input.execute();

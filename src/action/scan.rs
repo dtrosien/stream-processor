@@ -6,6 +6,13 @@ use std::sync::Arc;
 pub struct Scan {
     data_source: Arc<dyn DataSource>,
 }
+
+impl Scan {
+    pub fn new(data_source: Arc<dyn DataSource>) -> Arc<Self> {
+        Arc::new(Scan { data_source })
+    }
+}
+
 impl Action for Scan {
     fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
         self.data_source.read_batch()

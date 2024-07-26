@@ -1,9 +1,9 @@
-mod avro_sr_encoder;
+pub mod avro_sr_encoder;
 
 use crate::container::MsgContainer;
+use crate::encoder::avro_sr_encoder::AvroSREncoder;
 use serde::Serialize;
-use std::sync::Arc;
 
-pub trait Encoder {
-    fn encode(&self, item: impl Serialize) -> Option<Arc<dyn MsgContainer>>;
+pub enum Encoder {
+    AvroSREncoder(AvroSREncoder),
 }

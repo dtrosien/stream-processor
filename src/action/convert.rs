@@ -9,6 +9,21 @@ pub struct Convert {
     mapper: Arc<dyn TypeMapper>,
     converter: Arc<dyn TypeConverter>,
 }
+
+impl Convert {
+    pub fn new(
+        input: Arc<dyn Action>,
+        mapper: Arc<dyn TypeMapper>,
+        converter: Arc<dyn TypeConverter>,
+    ) -> Arc<Self> {
+        Arc::new(Convert {
+            input,
+            mapper,
+            converter,
+        })
+    }
+}
+
 impl Action for Convert {
     fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
         let input = self.input.execute();

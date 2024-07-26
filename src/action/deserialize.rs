@@ -3,9 +3,15 @@ use crate::container::MsgContainer;
 use crate::decoder::Decoder;
 use std::sync::Arc;
 
-struct Deserialize {
+pub struct Deserialize {
     input: Arc<dyn Action>,
     decoder: Arc<dyn Decoder>,
+}
+
+impl Deserialize {
+    pub fn new(input: Arc<dyn Action>, decoder: Arc<dyn Decoder>) -> Arc<Self> {
+        Arc::new(Deserialize { input, decoder })
+    }
 }
 impl Action for Deserialize {
     fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {

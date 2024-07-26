@@ -1,24 +1,17 @@
 extern crate core;
 
 pub mod action;
-pub mod avro_deprecated;
+
 pub mod container;
 pub mod data_sink;
 pub mod data_source;
 pub mod decoder;
-pub mod domain_deprecated;
+
 pub mod encoder;
-pub mod kafka_sink_deprecated;
-pub mod kafka_source_deprecated;
-pub mod object_store_sink_deprecated;
-pub mod odbc_sink_deprecated;
-pub mod processor_deprecated;
-pub mod sink_deprecated;
-pub mod source_deprecated;
-pub mod stream_deprecated;
+
 pub mod telemetry;
 pub mod transformation;
-pub mod transformation_depr;
+
 pub mod type_converter;
 pub mod type_definitions;
 pub mod type_mapper;

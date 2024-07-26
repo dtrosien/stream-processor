@@ -11,10 +11,6 @@ use crate::type_converter::TypeConverter;
 use crate::type_mapper::TypeMapper;
 use std::sync::Arc;
 
-
-
-
-
 pub trait Stream {
     /// Apply Serialization
     fn deserialize(self: Arc<Self>, decoder: Arc<dyn Decoder>) -> Arc<dyn Stream>;

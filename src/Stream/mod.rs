@@ -11,6 +11,7 @@ use crate::type_converter::TypeConverter;
 use crate::type_mapper::TypeMapper;
 use std::sync::Arc;
 
+
 pub trait Stream {
     /// Apply Serialization
     fn deserialize(self: Arc<Self>, decoder: Arc<dyn Decoder>) -> Arc<dyn Stream>;
@@ -39,7 +40,7 @@ impl Stream for StreamImpl {
     fn deserialize(self: Arc<Self>, decoder: Arc<dyn Decoder>) -> Arc<dyn Stream> {
         Arc::new(StreamImpl {
             action: Some(Deserialize::new(
-                self.action.clone().expect("todo"),
+                self.action.clone().expect("todo").child().unwrap(),
                 decoder,
             )),
         })
@@ -52,7 +53,7 @@ impl Stream for StreamImpl {
     ) -> Arc<dyn Stream> {
         Arc::new(StreamImpl {
             action: Some(Convert::new(
-                self.action.clone().expect("todo"),
+                self.action.clone().expect("todo").child().unwrap(),
                 mapper,
                 converter,
             )),
@@ -66,7 +67,7 @@ impl Stream for StreamImpl {
     ) -> Arc<dyn Stream> {
         Arc::new(StreamImpl {
             action: Some(Transform::new(
-                self.action.clone().expect("todo"),
+                self.action.clone().expect("todo").child().unwrap(),
                 encoder,
                 transformations,
             )),
@@ -75,7 +76,10 @@ impl Stream for StreamImpl {
 
     fn write(self: Arc<Self>, data_sink: Arc<dyn DataSink>) -> Arc<dyn Stream> {
         Arc::new(StreamImpl {
-            action: Some(Write::new(self.action.clone().expect("todo"), data_sink)),
+            action: Some(Write::new(
+                self.action.clone().expect("todo").child().unwrap(),
+                data_sink,
+            )),
         })
     }
 

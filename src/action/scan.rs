@@ -7,7 +7,7 @@ pub struct Scan {
     data_source: Arc<dyn DataSource>,
 }
 impl Action for Scan {
-    fn execute(&self) -> Arc<dyn MsgContainer> {
+    fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
         self.data_source.read_batch()
     }
 

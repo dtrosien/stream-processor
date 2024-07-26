@@ -6,8 +6,8 @@ pub trait Transformation {
     fn execute(
         &self,
         input: Arc<dyn MsgContainer>,
-        //encoder: Option<Arc<dyn Encoder>>,
-    ) -> Arc<dyn MsgContainer>;
+        //encoder: Arc<dyn Encoder>,
+    ) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_>;
 }
 
 // old example

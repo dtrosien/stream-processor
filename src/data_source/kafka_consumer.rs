@@ -11,7 +11,7 @@ struct KafkaConsumer {
 }
 
 impl DataSource for KafkaConsumer {
-    fn read_batch(&self) -> Arc<dyn MsgContainer> {
+    fn read_batch(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
         // let msg = self
         //     .consumer
         //     .recv()
@@ -22,11 +22,11 @@ impl DataSource for KafkaConsumer {
         //     .to_vec();
 
         let msg: Vec<u8> = vec![1, 2];
-        let container = GenericMsgContainer::new(
+        let container: Arc<dyn MsgContainer> = GenericMsgContainer::new(
             Arc::new(msg) as Arc<dyn Any>,
             None,
             MsgType::Raw(RawTypes::Bytes),
         );
-        container
+        Box::new(vec![container].into_iter())
     }
 }

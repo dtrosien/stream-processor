@@ -9,9 +9,9 @@ pub struct Write {
 }
 
 impl Action for Write {
-    fn execute(&self) -> Arc<dyn MsgContainer> {
-        let result = self.input.execute();
-        self.data_sink.write(result);
+    fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
+        let input = self.input.execute();
+        let _ = Box::new(input.map(move |container| self.data_sink.write(container)));
         todo!()
     }
 

@@ -1,4 +1,5 @@
 use crate::action_plan::scan::Scan;
+use crate::container::MsgContainer;
 use crate::data_source::kafka_consumer::KafkaConsumer;
 use crate::data_source::DataSource;
 use crate::stream::{Stream, StreamImpl};
@@ -28,5 +29,15 @@ impl ExecutionContext {
         Arc::new(StreamImpl {
             plan: Some(Scan::new(ds)),
         })
+    }
+
+    /// Execute the logical plan represented by a DataFrame
+    pub fn execute_once(&self, stream: Arc<dyn Stream>, optimize: bool) {
+        let plan = if optimize {
+            todo!()
+        } else {
+            stream.action_plan()
+        };
+        let _ = plan.execute(); // todo check what writer returns .. maybe return stats or so in container
     }
 }

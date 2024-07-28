@@ -1,18 +1,18 @@
-use crate::action::Action;
+use crate::action_plan::ActionPlan;
 use crate::container::MsgContainer;
 use crate::encoder::Encoder;
 use crate::transformation::Transformation;
 use std::sync::Arc;
 
 pub struct Transform {
-    input: Arc<dyn Action>,
+    input: Arc<dyn ActionPlan>,
     encoder: Option<Arc<Encoder>>,
     transformations: Vec<Arc<dyn Transformation>>,
 }
 
 impl Transform {
     pub fn new(
-        input: Arc<dyn Action>,
+        input: Arc<dyn ActionPlan>,
         encoder: Option<Arc<Encoder>>,
         transformations: Vec<Arc<dyn Transformation>>,
     ) -> Arc<Self> {
@@ -24,7 +24,7 @@ impl Transform {
     }
 }
 
-impl Action for Transform {
+impl ActionPlan for Transform {
     fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
         let input = self.input.execute();
 
@@ -36,7 +36,11 @@ impl Action for Transform {
         }))
     }
 
-    fn child(&self) -> Option<Arc<dyn Action>> {
+    fn child(&self) -> Option<Arc<dyn ActionPlan>> {
         Option::from(self.input.clone())
+    }
+
+    fn commit_batch(&self) {
+        self.child().unwrap().commit_batch()
     }
 }

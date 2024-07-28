@@ -1,4 +1,4 @@
-use crate::action::Action;
+use crate::action_plan::ActionPlan;
 use crate::container::MsgContainer;
 use crate::data_source::DataSource;
 use std::sync::Arc;
@@ -13,12 +13,16 @@ impl Scan {
     }
 }
 
-impl Action for Scan {
+impl ActionPlan for Scan {
     fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
         self.data_source.read_batch()
     }
 
-    fn child(&self) -> Option<Arc<dyn Action>> {
+    fn child(&self) -> Option<Arc<dyn ActionPlan>> {
         None
+    }
+
+    fn commit_batch(&self) {
+        self.data_source.commit();
     }
 }

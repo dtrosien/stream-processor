@@ -9,6 +9,8 @@ pub trait MsgContainer {
     fn get_msg_name(self: Arc<Self>) -> Option<String>;
 }
 
+// todo maybe include batch infos for commit
+
 pub struct GenericMsgContainer {
     msg: Arc<dyn Any>,
     msg_name: Option<String>,

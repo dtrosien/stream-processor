@@ -1,6 +1,6 @@
 extern crate core;
 
-pub mod action;
+pub mod action_plan;
 
 pub mod container;
 pub mod data_sink;
@@ -12,7 +12,8 @@ pub mod encoder;
 pub mod telemetry;
 pub mod transformation;
 
-mod Stream;
+pub mod execution;
+pub mod stream;
 pub mod type_converter;
 pub mod type_definitions;
 pub mod type_mapper;

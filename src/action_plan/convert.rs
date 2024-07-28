@@ -1,18 +1,18 @@
-use crate::action::Action;
+use crate::action_plan::ActionPlan;
 use crate::container::MsgContainer;
 use crate::type_converter::TypeConverter;
 use crate::type_mapper::TypeMapper;
 use std::sync::Arc;
 
 pub struct Convert {
-    input: Arc<dyn Action>,
+    input: Arc<dyn ActionPlan>,
     mapper: Arc<dyn TypeMapper>,
     converter: Arc<dyn TypeConverter>,
 }
 
 impl Convert {
     pub fn new(
-        input: Arc<dyn Action>,
+        input: Arc<dyn ActionPlan>,
         mapper: Arc<dyn TypeMapper>,
         converter: Arc<dyn TypeConverter>,
     ) -> Arc<Self> {
@@ -24,14 +24,18 @@ impl Convert {
     }
 }
 
-impl Action for Convert {
+impl ActionPlan for Convert {
     fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
         let input = self.input.execute();
 
         Box::new(input.map(move |container| self.converter.convert(container, self.mapper.clone())))
     }
 
-    fn child(&self) -> Option<Arc<dyn Action>> {
+    fn child(&self) -> Option<Arc<dyn ActionPlan>> {
         Option::from(self.input.clone())
+    }
+
+    fn commit_batch(&self) {
+        self.child().unwrap().commit_batch()
     }
 }

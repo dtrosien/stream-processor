@@ -20,8 +20,7 @@ impl TypeConverter for AvroValueConverter {
         if let MsgType::Generic(GenericTypes::AvroValue) = msg_type.as_ref() {
             let msg_name = msg.clone().get_batch_name().unwrap_or_default();
 
-            // todo hier wird auf gesammten batch operiert ... ueberlegen wie das besser geht.. unten muss eher zum deserializer weil hier eigentlich nur noch homogene batches ankommen sollen
-            // todo aber man kann den code hier nutzen ... nur noch ueber legen wo heterogene batches auftreten koennen .. evtl datatypes anpassen damit klar ist was homogen ist. zb das datatype Optional ist und nur wenn gestezt, ist es homogen
+            // todo noch ueber legen wo heterogene batches auftreten koennen .. evtl datatypes anpassen damit klar ist was homogen ist. zb das datatype Optional ist und nur wenn gestezt, ist es homogen oder direct im BATCH enum als uebergeorneten typ
             let transform_type = mapper.map_name_to_type(&msg_name);
 
             let batch = msg.get_batch();

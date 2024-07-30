@@ -1,5 +1,5 @@
 use crate::action_plan::ActionPlan;
-use crate::container::MsgContainer;
+use crate::container::BatchContainer;
 use crate::type_converter::TypeConverter;
 use crate::type_mapper::TypeMapper;
 use std::sync::Arc;
@@ -25,10 +25,15 @@ impl Convert {
 }
 
 impl ActionPlan for Convert {
-    fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
+    fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let input = self.input.execute();
 
-        Box::new(input.map(move |container| self.converter.convert(container, self.mapper.clone())))
+        Box::new(
+            input
+                .flat_map(move |container| self.converter.convert(container, self.mapper.clone()))
+                .collect::<Vec<_>>()
+                .into_iter(),
+        )
     }
 
     fn child(&self) -> Option<Arc<dyn ActionPlan>> {

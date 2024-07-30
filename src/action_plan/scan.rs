@@ -1,5 +1,5 @@
 use crate::action_plan::ActionPlan;
-use crate::container::MsgContainer;
+use crate::container::BatchContainer;
 use crate::data_source::DataSource;
 use std::sync::Arc;
 
@@ -14,7 +14,7 @@ impl Scan {
 }
 
 impl ActionPlan for Scan {
-    fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
+    fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         self.data_source.read_batch()
     }
 

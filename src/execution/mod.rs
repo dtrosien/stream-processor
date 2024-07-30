@@ -1,5 +1,5 @@
 use crate::action_plan::scan::Scan;
-use crate::container::MsgContainer;
+use crate::container::BatchContainer;
 use crate::data_source::kafka_consumer::KafkaConsumer;
 use crate::data_source::DataSource;
 use crate::stream::{Stream, StreamImpl};

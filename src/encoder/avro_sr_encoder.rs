@@ -1,4 +1,4 @@
-use crate::container::{GenericMsgContainer, MsgContainer};
+use crate::container::{Batch, BatchContainer, GenericBatchContainer};
 use crate::type_definitions::{MsgType, RawTypes};
 use apache_avro::types::Value;
 use schema_registry_converter::blocking::avro::AvroEncoder;
@@ -12,7 +12,7 @@ pub struct AvroSREncoder {
     subject_name_strategy: SubjectNameStrategy,
 }
 impl AvroSREncoder {
-    fn encode(&self, item: impl Serialize) -> Option<Arc<dyn MsgContainer>> {
+    fn encode(&self, item: impl Serialize) -> Option<Vec<u8>> {
         let payload = match self
             .encoder
             .encode_struct(item, &self.subject_name_strategy)
@@ -20,14 +20,15 @@ impl AvroSREncoder {
             Ok(v) => v,
             Err(e) => panic!("Error getting payload: {}", e),
         };
-        Some(GenericMsgContainer::new(
-            Arc::new(payload) as Arc<dyn Any>,
-            None,
-            MsgType::Raw(RawTypes::Bytes),
-        ))
+        // Some(GenericBatchContainer::new(
+        //     Arc::new(payload) as Arc<dyn Any>,
+        //     None,
+        //     MsgType::Raw(RawTypes::Bytes),
+        // ))
+        Some(payload)
     }
 
-    fn encode_val(&self, item: Value) -> Option<Arc<dyn MsgContainer>> {
+    fn encode_val(&self, item: Value) -> Option<Vec<u8>> {
         if let Value::Record(r) = item {
             let r = r.iter().map(|(k, v)| (k.as_str(), v.clone())).collect();
 
@@ -35,11 +36,12 @@ impl AvroSREncoder {
                 Ok(v) => v,
                 Err(e) => panic!("Error getting payload: {}", e),
             };
-            Some(GenericMsgContainer::new(
-                Arc::new(payload) as Arc<dyn Any>,
-                None,
-                MsgType::Raw(RawTypes::Bytes),
-            ))
+            // Some(GenericBatchContainer::new(
+            //     Arc::new(Batch::AnyBatch(payload)),
+            //     None,
+            //     MsgType::Raw(RawTypes::Bytes),
+            // ))
+            Some(payload)
         } else {
             panic!("todo")
         }

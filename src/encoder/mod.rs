@@ -1,6 +1,6 @@
 pub mod avro_sr_encoder;
 
-use crate::container::MsgContainer;
+use crate::container::BatchContainer;
 use crate::encoder::avro_sr_encoder::AvroSREncoder;
 use serde::Serialize;
 

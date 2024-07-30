@@ -1,5 +1,5 @@
 use crate::action_plan::ActionPlan;
-use crate::container::MsgContainer;
+use crate::container::BatchContainer;
 use crate::decoder::Decoder;
 use std::sync::Arc;
 
@@ -14,9 +14,14 @@ impl Deserialize {
     }
 }
 impl ActionPlan for Deserialize {
-    fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
+    fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let input = self.input.execute();
-        Box::new(input.map(move |container| self.decoder.decode(container)))
+        Box::new(
+            input
+                .flat_map(move |container| self.decoder.decode(container))
+                .collect::<Vec<_>>()
+                .into_iter(),
+        )
     }
 
     fn child(&self) -> Option<Arc<dyn ActionPlan>> {

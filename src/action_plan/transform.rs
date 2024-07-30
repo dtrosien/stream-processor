@@ -1,5 +1,5 @@
 use crate::action_plan::ActionPlan;
-use crate::container::MsgContainer;
+use crate::container::BatchContainer;
 use crate::encoder::Encoder;
 use crate::transformation::Transformation;
 use std::sync::Arc;
@@ -25,7 +25,7 @@ impl Transform {
 }
 
 impl ActionPlan for Transform {
-    fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
+    fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let input = self.input.execute();
 
         Box::new(input.flat_map(move |container| {

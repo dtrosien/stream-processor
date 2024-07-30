@@ -1,13 +1,13 @@
-use crate::container::MsgContainer;
+use crate::container::BatchContainer;
 use crate::encoder::Encoder;
 use std::sync::Arc;
 
 pub trait Transformation {
     fn execute(
         &self,
-        input: Arc<dyn MsgContainer>,
+        input: Arc<dyn BatchContainer>,
         encoder: Option<Arc<Encoder>>,
-    ) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_>;
+    ) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_>;
 }
 
 // old example

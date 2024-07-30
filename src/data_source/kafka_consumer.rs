@@ -1,4 +1,4 @@
-use crate::container::{GenericMsgContainer, MsgContainer};
+use crate::container::{Batch, BatchContainer, GenericBatchContainer};
 use crate::data_source::DataSource;
 use crate::type_definitions::{MsgType, RawTypes};
 use rdkafka::consumer::{CommitMode, Consumer, StreamConsumer};
@@ -20,7 +20,7 @@ impl KafkaConsumer {
 }
 
 impl DataSource for KafkaConsumer {
-    fn read_batch(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
+    fn read_batch(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         // let msg = self
         //     .consumer
         //     .recv()
@@ -31,11 +31,13 @@ impl DataSource for KafkaConsumer {
         //     .to_vec();
 
         let msg: Vec<u8> = vec![1, 2];
-        let container: Arc<dyn MsgContainer> = GenericMsgContainer::new(
-            Arc::new(msg) as Arc<dyn Any>,
-            None,
-            MsgType::Raw(RawTypes::Bytes),
-        );
+
+        let batch = Arc::new(Batch::AnyBatch(vec![
+            Arc::new(msg.clone()),
+            Arc::new(msg.clone()),
+        ]));
+        let container: Arc<dyn BatchContainer> =
+            GenericBatchContainer::new(batch, None, MsgType::Raw(RawTypes::Bytes));
         Box::new(vec![container].into_iter())
     }
 

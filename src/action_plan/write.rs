@@ -1,5 +1,5 @@
 use crate::action_plan::ActionPlan;
-use crate::container::MsgContainer;
+use crate::container::BatchContainer;
 use crate::data_sink::DataSink;
 use std::sync::Arc;
 
@@ -15,11 +15,12 @@ impl Write {
 }
 
 impl ActionPlan for Write {
-    fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn MsgContainer>> + '_> {
+    fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let input = self.input.execute();
         let _ = Box::new(input.map(move |container| self.data_sink.write(container)));
         self.commit_batch();
         todo!()
+        // todo let write return containers, which keeps error items (maybe a new batch type), these erros can then be handles together or collected etc
     }
 
     fn child(&self) -> Option<Arc<dyn ActionPlan>> {

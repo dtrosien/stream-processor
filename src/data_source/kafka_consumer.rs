@@ -1,6 +1,6 @@
 use crate::container::{Batch, BatchContainer, GenericBatchContainer};
 use crate::data_source::DataSource;
-use crate::type_definitions::{MsgType, RawTypes};
+use crate::type_definitions::MixedBatch;
 use rdkafka::consumer::{CommitMode, Consumer, StreamConsumer};
 use rdkafka::{ClientConfig, Message};
 use std::any::Any;
@@ -32,12 +32,11 @@ impl DataSource for KafkaConsumer {
 
         let msg: Vec<u8> = vec![1, 2];
 
-        let batch = Arc::new(Batch::AnyBatch(vec![
+        let batch = Arc::new(Batch::Mixed(MixedBatch::Bytes(vec![
             Arc::new(msg.clone()),
             Arc::new(msg.clone()),
-        ]));
-        let container: Arc<dyn BatchContainer> =
-            GenericBatchContainer::new(batch, None, MsgType::Raw(RawTypes::Bytes));
+        ])));
+        let container: Arc<dyn BatchContainer> = GenericBatchContainer::new(batch, None);
         Box::new(vec![container].into_iter())
     }
 

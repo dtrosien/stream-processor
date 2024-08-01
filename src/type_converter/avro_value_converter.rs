@@ -1,62 +1,63 @@
 use crate::container::{Batch, BatchContainer, GenericBatchContainer};
 use crate::type_converter::TypeConverter;
-use crate::type_definitions::{CustomTypes, GenericTypes, MsgType};
+use crate::type_definitions::{CustomType, CustomTypes, UniformBatch};
 use crate::type_mapper::TypeMapper;
-use apache_avro::types::Value;
-use arrow::compute::or;
-use std::any::Any;
-use std::collections::HashMap;
 use std::sync::Arc;
 
 pub struct AvroValueConverter;
+/// converts avro values to custom types
 impl TypeConverter for AvroValueConverter {
     fn convert(
         &self,
         msg: Arc<dyn BatchContainer>,
         mapper: Arc<dyn TypeMapper>,
     ) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
-        let msg_type = msg.clone().get_batch_type();
+        let msg_name = msg.clone().get_batch_name().unwrap_or_default();
 
-        if let MsgType::Generic(GenericTypes::AvroValue) = msg_type.as_ref() {
-            let msg_name = msg.clone().get_batch_name().unwrap_or_default();
+        // todo eventuell kann man die trafo sein lassen... man kann ja auch einfach in der travo von Value auf concreten type casten. andererseits muss dann der mapper in die transformation parameter
 
-            // todo noch ueber legen wo heterogene batches auftreten koennen .. evtl datatypes anpassen damit klar ist was homogen ist. zb das datatype Optional ist und nur wenn gestezt, ist es homogen oder direct im BATCH enum als uebergeorneten typ
-            let transform_type = mapper.map_name_to_type(&msg_name);
+        let transform_type = mapper.map_name_to_type(&msg_name);
 
-            let batch = msg.get_batch();
+        let batch = msg.get_batch();
 
-            if let Batch::AnyBatch(any_batch) = batch.as_ref() {
-                let converted_values = any_batch
-                    .iter()
-                    .map(|item| {
-                        let value = item.downcast_ref::<Value>().unwrap();
+        if let Batch::Uniform(UniformBatch::AvroValue(value_batch)) = batch.as_ref() {
+            let converted_values = value_batch
+                .iter()
+                .map(|value| {
+                    let data = match transform_type {
+                        CustomTypes::A => {
+                            let a = Arc::new(apache_avro::from_value::<u64>(value).unwrap());
+                            a as Arc<dyn CustomType>
+                        }
+                        CustomTypes::B => {
+                            let b = Arc::new(apache_avro::from_value::<String>(value).unwrap());
+                            b as Arc<dyn CustomType>
+                        }
+                    };
+                    data
+                })
+                .collect::<Vec<_>>();
 
-                        let data = match transform_type {
-                            CustomTypes::A => {
-                                let a = Arc::new(apache_avro::from_value::<u64>(value).unwrap());
-                                a as Arc<dyn Any>
-                            }
-                            CustomTypes::B => {
-                                let b = Arc::new(apache_avro::from_value::<String>(value).unwrap());
-                                b as Arc<dyn Any>
-                            }
-                        };
-                        data
-                    })
-                    .collect::<Vec<_>>();
+            let container = GenericBatchContainer::new(
+                Arc::new(Batch::Uniform(UniformBatch::Custom(converted_values))),
+                None,
+            ) as Arc<dyn BatchContainer>;
 
-                let container = GenericBatchContainer::new(
-                    Arc::new(Batch::AnyBatch(converted_values)),
-                    None,
-                    MsgType::Custom(transform_type),
-                ) as Arc<dyn BatchContainer>;
-
-                Box::new(std::iter::once(container))
-            } else {
-                panic!("not supported")
-            }
+            Box::new(std::iter::once(container))
         } else {
-            panic!("not Supported")
+            panic!("not supported")
         }
+    }
+}
+
+impl CustomType for u64 {
+    fn get_name(self: Arc<Self>) -> String {
+        "u64".to_string()
+    }
+}
+
+impl CustomType for String {
+    fn get_name(self: Arc<Self>) -> String {
+        "String".to_string()
     }
 }

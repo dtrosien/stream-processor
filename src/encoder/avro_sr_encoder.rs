@@ -1,5 +1,5 @@
 use crate::container::{Batch, BatchContainer, GenericBatchContainer};
-use crate::type_definitions::{MsgType, RawTypes};
+
 use apache_avro::types::Value;
 use schema_registry_converter::blocking::avro::AvroEncoder;
 use schema_registry_converter::schema_registry_common::SubjectNameStrategy;

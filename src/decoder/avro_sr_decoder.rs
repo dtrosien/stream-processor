@@ -8,7 +8,13 @@ use schema_registry_converter::blocking::schema_registry::SrSettings;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-struct AvroSRDecoder {}
+pub struct AvroSRDecoder {}
+
+impl AvroSRDecoder {
+    pub fn new() -> Arc<Self> {
+        Arc::new(AvroSRDecoder {})
+    }
+}
 
 impl Decoder for AvroSRDecoder {
     fn decode(

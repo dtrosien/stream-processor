@@ -6,30 +6,16 @@ use rdkafka::{ClientConfig, Message};
 use std::any::Any;
 use std::sync::Arc;
 
-pub struct KafkaConsumer {
-    consumer: StreamConsumer,
-}
+pub struct DummyConsumer {}
 
-impl KafkaConsumer {
-    pub fn new(client_config: ClientConfig) -> Arc<Self> {
-        let consumer = client_config
-            .create()
-            .expect("Failed to create Kafka consumer");
-        Arc::new(KafkaConsumer { consumer })
+impl DummyConsumer {
+    pub fn new() -> Arc<Self> {
+        Arc::new(DummyConsumer {})
     }
 }
 
-impl DataSource for KafkaConsumer {
+impl DataSource for DummyConsumer {
     fn read_batch(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
-        // let msg = self
-        //     .consumer
-        //     .recv()
-        //     .await
-        //     .unwrap()
-        //     .payload()
-        //     .unwrap()
-        //     .to_vec();
-
         let artificial_msgs = vec!["hallo", "dies", "ist", "ein", "test"];
 
         let msg: Vec<Arc<Vec<u8>>> = artificial_msgs
@@ -42,9 +28,5 @@ impl DataSource for KafkaConsumer {
         Box::new(vec![container].into_iter())
     }
 
-    fn commit(&self) {
-        self.consumer
-            .commit_consumer_state(CommitMode::Sync)
-            .unwrap()
-    }
+    fn commit(&self) {}
 }

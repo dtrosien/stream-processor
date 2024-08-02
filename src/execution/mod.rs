@@ -1,5 +1,6 @@
 use crate::action_plan::scan::Scan;
 use crate::container::BatchContainer;
+use crate::data_source::dummy_consumer::DummyConsumer;
 use crate::data_source::kafka_consumer::KafkaConsumer;
 use crate::data_source::DataSource;
 use crate::stream::{Stream, StreamImpl};
@@ -26,6 +27,13 @@ impl ExecutionContext {
 
     pub fn kafka(&self, topic: String, client_config: ClientConfig) -> Arc<StreamImpl> {
         let ds: Arc<dyn DataSource> = KafkaConsumer::new(client_config);
+        Arc::new(StreamImpl {
+            plan: Some(Scan::new(ds)),
+        })
+    }
+
+    pub fn dummy(&self) -> Arc<StreamImpl> {
+        let ds: Arc<dyn DataSource> = DummyConsumer::new();
         Arc::new(StreamImpl {
             plan: Some(Scan::new(ds)),
         })

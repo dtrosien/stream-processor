@@ -12,7 +12,14 @@ pub struct AvroSREncoder {
     subject_name_strategy: SubjectNameStrategy,
 }
 impl AvroSREncoder {
-    fn encode(&self, item: impl Serialize) -> Option<Vec<u8>> {
+    pub fn new(encoder: AvroEncoder, subject_name_strategy: SubjectNameStrategy) -> Self {
+        AvroSREncoder {
+            encoder,
+            subject_name_strategy,
+        }
+    }
+
+    pub fn encode(&self, item: impl Serialize) -> Option<Vec<u8>> {
         let payload = match self
             .encoder
             .encode_struct(item, &self.subject_name_strategy)
@@ -28,7 +35,7 @@ impl AvroSREncoder {
         Some(payload)
     }
 
-    fn encode_val(&self, item: Value) -> Option<Vec<u8>> {
+    pub fn encode_val(&self, item: Value) -> Option<Vec<u8>> {
         if let Value::Record(r) = item {
             let r = r.iter().map(|(k, v)| (k.as_str(), v.clone())).collect();
 

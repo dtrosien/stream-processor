@@ -7,8 +7,8 @@ use std::sync::Arc;
 use std::time::Duration;
 use uuid::Uuid;
 
-struct KafkaProducer {
-    producer: FutureProducer,
+pub struct KafkaProducer {
+    //  producer: FutureProducer,
 }
 
 #[async_trait]
@@ -18,14 +18,16 @@ impl DataSink for KafkaProducer {
 
         if let Batch::Uniform(UniformBatch::Bytes(bytes_batch)) = batch.as_ref() {
             bytes_batch.iter().for_each(|item| {
-                let _ = self.producer.send(
-                    FutureRecord::to(&input.clone().get_sink().unwrap())
-                        .payload(item.as_slice())
-                        //.headers(headers)
-                        .key(&format!("Key {}", Uuid::new_v4())),
-                    Duration::from_secs(0),
-                );
+                // let _ = self.producer.send(
+                //     FutureRecord::to(&input.clone().get_sink().unwrap())
+                //         .payload(item.as_slice())
+                //         //.headers(headers)
+                //         .key(&format!("Key {}", Uuid::new_v4())),
+                //     Duration::from_secs(0),
+                // );
                 // .await;
+
+                println!("writer got bites: {}", item.len())
             })
         }
     }

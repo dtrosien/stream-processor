@@ -1,4 +1,4 @@
-mod avro_value_converter;
+pub mod avro_value_converter;
 
 use crate::container::BatchContainer;
 use crate::type_mapper::TypeMapper;

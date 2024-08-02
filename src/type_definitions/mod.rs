@@ -9,7 +9,7 @@ pub enum UniformBatch {
     Bytes(Vec<Arc<Vec<u8>>>),
     RecordBatch(RecordBatch),
     AvroValue(Vec<Arc<Value>>),
-    Custom(Vec<Arc<dyn CustomType>>),
+    Custom(Vec<Arc<dyn Any>>),
 }
 
 #[derive(Clone, Debug)]
@@ -18,7 +18,7 @@ pub enum MixedBatch {
     Any(Vec<Arc<dyn Any>>),
 }
 
-pub trait CustomType: Debug {
+pub trait CustomType: Debug + Any {
     fn get_name(self: Arc<Self>) -> String;
 }
 

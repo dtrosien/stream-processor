@@ -2,9 +2,17 @@ use crate::container::{Batch, BatchContainer, GenericBatchContainer};
 use crate::type_converter::TypeConverter;
 use crate::type_definitions::{CustomType, CustomTypes, UniformBatch};
 use crate::type_mapper::TypeMapper;
+use std::any::Any;
 use std::sync::Arc;
 
 pub struct AvroValueConverter;
+
+impl AvroValueConverter {
+    pub fn new() -> Arc<Self> {
+        Arc::new(AvroValueConverter {})
+    }
+}
+
 /// converts avro values to custom types
 impl TypeConverter for AvroValueConverter {
     fn convert(
@@ -27,11 +35,11 @@ impl TypeConverter for AvroValueConverter {
                     let data = match transform_type {
                         CustomTypes::A => {
                             let a = Arc::new(apache_avro::from_value::<u64>(value).unwrap());
-                            a as Arc<dyn CustomType>
+                            a as Arc<dyn Any>
                         }
                         CustomTypes::B => {
                             let b = Arc::new(apache_avro::from_value::<String>(value).unwrap());
-                            b as Arc<dyn CustomType>
+                            b as Arc<dyn Any>
                         }
                     };
                     data

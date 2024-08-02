@@ -1,4 +1,4 @@
-mod kafka_producer;
+pub mod kafka_producer;
 
 use crate::container::BatchContainer;
 use std::sync::Arc;

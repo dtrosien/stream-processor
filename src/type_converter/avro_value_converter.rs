@@ -38,7 +38,6 @@ impl TypeConverter for AvroValueConverter {
                             let a =
                                 Arc::new(apache_avro::from_value::<StringMessage>(value).unwrap());
                             println!("got {}", a.as_ref().message);
-                            // todo bis hier klappts ... danach  verschwindet die msg  also weiter debuggen
                             a as Arc<dyn Any>
                         }
                         CustomTypes::B => {

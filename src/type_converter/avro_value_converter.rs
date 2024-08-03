@@ -1,4 +1,5 @@
 use crate::container::{Batch, BatchContainer, GenericBatchContainer};
+use crate::data_source::dummy_consumer::StringMessage;
 use crate::type_converter::TypeConverter;
 use crate::type_definitions::{CustomType, CustomTypes, UniformBatch};
 use crate::type_mapper::TypeMapper;
@@ -33,8 +34,11 @@ impl TypeConverter for AvroValueConverter {
                 .iter()
                 .map(|value| {
                     let data = match transform_type {
-                        CustomTypes::A => {
-                            let a = Arc::new(apache_avro::from_value::<u64>(value).unwrap());
+                        CustomTypes::StringMessage => {
+                            let a =
+                                Arc::new(apache_avro::from_value::<StringMessage>(value).unwrap());
+                            println!("got {}", a.as_ref().message);
+                            // todo bis hier klappts ... danach  verschwindet die msg  also weiter debuggen
                             a as Arc<dyn Any>
                         }
                         CustomTypes::B => {

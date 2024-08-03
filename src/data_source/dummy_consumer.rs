@@ -46,5 +46,5 @@ impl DataSource for DummyConsumer {
 }
 #[derive(Debug, Serialize, Deserialize, AvroSchema)]
 pub struct StringMessage {
-    message: String,
+    pub message: String,
 }

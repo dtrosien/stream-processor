@@ -15,9 +15,9 @@ impl MapperImpl {
 impl TypeMapper for MapperImpl {
     fn map_name_to_type(&self, input: &str) -> CustomTypes {
         match input {
-            "apple" => CustomTypes::A,
+            "some.namespace.StringMessage" => CustomTypes::StringMessage,
             "banana" => CustomTypes::B,
-            _ => panic!("It's something else!"),
+            _ => panic!("It's something else!{}", input),
         }
     }
 }

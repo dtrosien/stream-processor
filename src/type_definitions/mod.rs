@@ -25,6 +25,6 @@ pub trait CustomType: Debug + Any {
 // todo wie kann man das in einer API klar machen dass es im Mapper und Converter custom gecoded werden muss
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum CustomTypes {
-    A,
+    StringMessage,
     B,
 }

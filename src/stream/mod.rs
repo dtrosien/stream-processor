@@ -41,10 +41,7 @@ pub struct StreamImpl {
 impl Stream for StreamImpl {
     fn deserialize(self: Arc<Self>, decoder: Arc<dyn Decoder>) -> Arc<dyn Stream> {
         Arc::new(StreamImpl {
-            plan: Some(Deserialize::new(
-                self.plan.clone().expect("todo").child().unwrap(),
-                decoder,
-            )),
+            plan: Some(Deserialize::new(self.plan.clone().expect("todo"), decoder)),
         })
     }
 
@@ -55,7 +52,7 @@ impl Stream for StreamImpl {
     ) -> Arc<dyn Stream> {
         Arc::new(StreamImpl {
             plan: Some(Convert::new(
-                self.plan.clone().expect("todo").child().unwrap(),
+                self.plan.clone().expect("todo"),
                 mapper,
                 converter,
             )),
@@ -69,7 +66,7 @@ impl Stream for StreamImpl {
     ) -> Arc<dyn Stream> {
         Arc::new(StreamImpl {
             plan: Some(Transform::new(
-                self.plan.clone().expect("todo").child().unwrap(),
+                self.plan.clone().expect("todo"),
                 encoder,
                 transformations,
             )),
@@ -78,10 +75,7 @@ impl Stream for StreamImpl {
 
     fn write(self: Arc<Self>, data_sink: Arc<dyn DataSink>) -> Arc<dyn Stream> {
         Arc::new(StreamImpl {
-            plan: Some(Write::new(
-                self.plan.clone().expect("todo").child().unwrap(),
-                data_sink,
-            )),
+            plan: Some(Write::new(self.plan.clone().expect("todo"), data_sink)),
         })
     }
 
@@ -104,22 +98,55 @@ mod test {
     use crate::type_converter::avro_value_converter::AvroValueConverter;
     use crate::type_definitions::UniformBatch;
     use crate::type_mapper::MapperImpl;
+    use apache_avro::types::Value;
+    use apache_avro::AvroSchema;
+    use mockito::Server;
     use parquet::data_type::AsBytes;
     use rdkafka::ClientConfig;
-    use schema_registry_converter::blocking::avro::AvroEncoder;
+    use schema_registry_converter::blocking::avro::{AvroDecoder, AvroEncoder};
     use schema_registry_converter::blocking::schema_registry::SrSettings;
     use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
+    use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
     use std::ops::Deref;
     use std::sync::Arc;
+    use tracing_subscriber::fmt::format;
+
+    #[test]
+    fn registry() {
+        let mut server = Server::new();
+        let _m = server .mock("GET", "/schemas/ids/1?deleted=true")
+            .with_status(200)
+            .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+            .with_body(r#"{"schema":"{\"type\":\"record\",\"name\":\"Heartbeat\",\"namespace\":\"nl.openweb.data\",\"fields\":[{\"name\":\"beat\",\"type\":\"long\"}]}"}"#)
+            .create();
+
+        let sr_settings = SrSettings::new(server.url());
+        let decoder = AvroDecoder::new(sr_settings);
+        let heartbeat = decoder.decode(Some(&[0, 0, 0, 0, 1, 6])).unwrap().value;
+        assert_eq!(
+            heartbeat,
+            Value::Record(vec![("beat".to_string(), Value::Long(3))])
+        );
+    }
 
     #[test]
     fn build_stream() {
         // todo einen funktioniereneden stream bauen und wenn es mal laeuft die structs und methoden finalisieren
 
+        let mut server = Server::new();
+        let _m = server .mock("GET", "/schemas/ids/1?deleted=true")
+            .with_status(200)
+            .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+            .with_body(r#"{"schema":"{\"type\":\"record\",\"name\":\"StringMessage\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"message\",\"type\":\"string\"}]}"}"#)
+            .create();
+
+        println!("{:?}", StringMessage::get_schema().canonical_form());
+
         let context = ExecutionContext::new(HashMap::default());
-        let decoder = AvroSRDecoder::new();
-        let sr_settings = SrSettings::new("url".to_string());
+        let sr_settings = SrSettings::new(server.url());
+        let decoder = AvroSRDecoder::new(sr_settings.clone());
+
         let avro_encoder = AvroEncoder::new(sr_settings);
         let s_n_strat = SubjectNameStrategy::TopicRecordNameStrategy(
             "topicA".to_string(),
@@ -142,6 +169,12 @@ mod test {
         let action_plan = stream.action_plan();
 
         let _ = action_plan.execute();
+    }
+
+    #[derive(Debug, Serialize, Deserialize, AvroSchema)]
+    #[serde(rename = "some.namespace.StringMessage")]
+    pub struct StringMessage {
+        message: String,
     }
 
     struct TestTransformation;

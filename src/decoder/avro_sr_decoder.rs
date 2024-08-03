@@ -8,11 +8,13 @@ use schema_registry_converter::blocking::schema_registry::SrSettings;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-pub struct AvroSRDecoder {}
+pub struct AvroSRDecoder {
+    sr_settings: SrSettings,
+}
 
 impl AvroSRDecoder {
-    pub fn new() -> Arc<Self> {
-        Arc::new(AvroSRDecoder {})
+    pub fn new(sr_settings: SrSettings) -> Arc<Self> {
+        Arc::new(AvroSRDecoder { sr_settings })
     }
 }
 
@@ -21,8 +23,7 @@ impl Decoder for AvroSRDecoder {
         &self,
         msg: Arc<dyn BatchContainer>,
     ) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
-        let sr_settings = SrSettings::new("some_url".to_string());
-        let decoder = AvroDecoder::new(sr_settings);
+        let decoder = AvroDecoder::new(self.sr_settings.clone());
 
         // takes a batch decodes each bytes based on its schemaid and regroup them back
         // in batches with the same schema name (so no regrouping is needed afterwards like in the typematcher).
@@ -30,6 +31,7 @@ impl Decoder for AvroSRDecoder {
         if let Batch::Mixed(MixedBatch::Bytes(bytes)) = batch.as_ref() {
             let mut batch_map: HashMap<String, Vec<Arc<Value>>> = HashMap::new();
             bytes.iter().for_each(|item| {
+                let item = item.as_ref();
                 let result = decoder.decode(Some(&item[..])).unwrap();
 
                 let value = Arc::new(result.value);

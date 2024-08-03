@@ -1,6 +1,8 @@
 use crate::action_plan::ActionPlan;
-use crate::container::BatchContainer;
+use crate::container::{Batch, BatchContainer, GenericBatchContainer};
 use crate::data_sink::DataSink;
+use crate::type_definitions::{MixedBatch, UniformBatch};
+use std::any::Any;
 use std::sync::Arc;
 
 pub struct Write {
@@ -19,8 +21,11 @@ impl ActionPlan for Write {
         let input = self.input.execute();
         let _ = Box::new(input.map(move |container| self.data_sink.write(container)));
         self.commit_batch();
-        todo!()
+
         // todo let write return containers, which keeps error items (maybe a new batch type), these erros can then be handles together or collected etc
+        let cc: Arc<dyn BatchContainer> =
+            GenericBatchContainer::new(Arc::from(Batch::Mixed(MixedBatch::Any(vec![]))), None);
+        Box::new(vec![cc].into_iter())
     }
 
     fn child(&self) -> Option<Arc<dyn ActionPlan>> {

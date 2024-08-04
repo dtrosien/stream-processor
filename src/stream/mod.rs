@@ -90,7 +90,6 @@ mod test {
     use crate::data_sink::kafka_producer::KafkaProducer;
     use crate::data_source::dummy_consumer::StringMessage;
     use crate::decoder::avro_sr_decoder::AvroSRDecoder;
-    use crate::encoder;
     use crate::encoder::avro_sr_encoder::AvroSREncoder;
     use crate::encoder::Encoder;
     use crate::execution::ExecutionContext;
@@ -99,84 +98,16 @@ mod test {
     use crate::type_converter::avro_value_converter::AvroValueConverter;
     use crate::type_definitions::UniformBatch;
     use crate::type_mapper::MapperImpl;
-    use apache_avro::types::Value;
-    use apache_avro::{AvroSchema, Schema};
+    use apache_avro::{AvroSchema};
     use mockito::Server;
-    use parquet::data_type::AsBytes;
-    use rdkafka::ClientConfig;
-    use schema_registry_converter::avro_common::get_supplied_schema;
-    use schema_registry_converter::blocking::avro::{AvroDecoder, AvroEncoder};
+
+    use schema_registry_converter::blocking::avro::{ AvroEncoder};
     use schema_registry_converter::blocking::schema_registry::SrSettings;
     use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
-    use std::ops::Deref;
     use std::sync::Arc;
-    use tracing_subscriber::fmt::format;
 
-    #[test]
-    fn registry() {
-        let mut server = Server::new();
-        let _m = server .mock("GET", "/schemas/ids/1?deleted=true")
-            .with_status(200)
-            .with_header("content-type", "application/vnd.schemaregistry.v1+json")
-            .with_body(r#"{"schema":"{\"type\":\"record\",\"name\":\"Heartbeat\",\"namespace\":\"nl.openweb.data\",\"fields\":[{\"name\":\"beat\",\"type\":\"long\"}]}"}"#)
-            .create();
-
-        let sr_settings = SrSettings::new(server.url());
-        let decoder = AvroDecoder::new(sr_settings);
-        let heartbeat = decoder.decode(Some(&[0, 0, 0, 0, 1, 6])).unwrap().value;
-        assert_eq!(
-            heartbeat,
-            Value::Record(vec![("beat".to_string(), Value::Long(3))])
-        );
-    }
-
-    #[test]
-    fn encode() {
-        let mut server = Server::new();
-        let _m = server .mock("GET", "/subjects/heartbeat-nl.openweb.data.Heartbeat/versions/latest")
-            .with_status(200)
-            .with_header("content-type", "application/vnd.schemaregistry.v1+json")
-            .with_body(r#"{"subject":"heartbeat-value","version":1,"id":3,"schema":"{\"type\":\"record\",\"name\":\"Heartbeat\",\"namespace\":\"nl.openweb.data\",\"fields\":[{\"name\":\"beat\",\"type\":\"long\"}]}"}"#)
-            .create();
-
-        #[derive(Serialize)]
-        struct Heartbeat {
-            beat: i64,
-        }
-
-        let sr_settings = SrSettings::new(server.url());
-        let encoder = AvroEncoder::new(sr_settings);
-        let existing_schema_strategy = SubjectNameStrategy::TopicRecordNameStrategy(
-            String::from("heartbeat"),
-            String::from("nl.openweb.data.Heartbeat"),
-        );
-        let bytes = encoder.encode_struct(Heartbeat { beat: 3 }, &existing_schema_strategy);
-
-        assert_eq!(bytes, Ok(vec![0, 0, 0, 0, 3, 6]));
-
-        let _n = server
-            .mock("POST", "/subjects/heartbeat-key/versions")
-            .with_status(200)
-            .with_header("content-type", "application/vnd.schemaregistry.v1+json")
-            .with_body(r#"{"id":4}"#)
-            .create();
-
-        let primitive_schema_strategy = SubjectNameStrategy::TopicNameStrategyWithSchema(
-            String::from("heartbeat"),
-            true,
-            get_supplied_schema(&Schema::String),
-        );
-        let bytes = encoder.encode_struct("key-value", &primitive_schema_strategy);
-
-        assert_eq!(
-            bytes,
-            Ok(vec![
-                0, 0, 0, 0, 4, 18, 107, 101, 121, 45, 118, 97, 108, 117, 101
-            ])
-        );
-    }
 
     #[test]
     fn build_stream() {

@@ -98,16 +98,15 @@ mod test {
     use crate::type_converter::avro_value_converter::AvroValueConverter;
     use crate::type_definitions::UniformBatch;
     use crate::type_mapper::MapperImpl;
-    use apache_avro::{AvroSchema};
+    use apache_avro::AvroSchema;
     use mockito::Server;
 
-    use schema_registry_converter::blocking::avro::{ AvroEncoder};
+    use schema_registry_converter::blocking::avro::AvroEncoder;
     use schema_registry_converter::blocking::schema_registry::SrSettings;
     use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
     use std::sync::Arc;
-
 
     #[test]
     fn build_stream() {

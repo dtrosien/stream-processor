@@ -88,6 +88,7 @@ impl Stream for StreamImpl {
 mod test {
     use crate::container::{Batch, BatchContainer, GenericBatchContainer};
     use crate::data_sink::kafka_producer::KafkaProducer;
+    use crate::data_source::dummy_consumer::StringMessage;
     use crate::decoder::avro_sr_decoder::AvroSRDecoder;
     use crate::encoder;
     use crate::encoder::avro_sr_encoder::AvroSREncoder;
@@ -99,10 +100,11 @@ mod test {
     use crate::type_definitions::UniformBatch;
     use crate::type_mapper::MapperImpl;
     use apache_avro::types::Value;
-    use apache_avro::AvroSchema;
+    use apache_avro::{AvroSchema, Schema};
     use mockito::Server;
     use parquet::data_type::AsBytes;
     use rdkafka::ClientConfig;
+    use schema_registry_converter::avro_common::get_supplied_schema;
     use schema_registry_converter::blocking::avro::{AvroDecoder, AvroEncoder};
     use schema_registry_converter::blocking::schema_registry::SrSettings;
     use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
@@ -131,14 +133,64 @@ mod test {
     }
 
     #[test]
-    fn build_stream() {
-        // todo einen funktioniereneden stream bauen und wenn es mal laeuft die structs und methoden finalisieren
-
+    fn encode() {
         let mut server = Server::new();
-        let _m = server .mock("GET", "/schemas/ids/1?deleted=true")
+        let _m = server .mock("GET", "/subjects/heartbeat-nl.openweb.data.Heartbeat/versions/latest")
+            .with_status(200)
+            .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+            .with_body(r#"{"subject":"heartbeat-value","version":1,"id":3,"schema":"{\"type\":\"record\",\"name\":\"Heartbeat\",\"namespace\":\"nl.openweb.data\",\"fields\":[{\"name\":\"beat\",\"type\":\"long\"}]}"}"#)
+            .create();
+
+        #[derive(Serialize)]
+        struct Heartbeat {
+            beat: i64,
+        }
+
+        let sr_settings = SrSettings::new(server.url());
+        let encoder = AvroEncoder::new(sr_settings);
+        let existing_schema_strategy = SubjectNameStrategy::TopicRecordNameStrategy(
+            String::from("heartbeat"),
+            String::from("nl.openweb.data.Heartbeat"),
+        );
+        let bytes = encoder.encode_struct(Heartbeat { beat: 3 }, &existing_schema_strategy);
+
+        assert_eq!(bytes, Ok(vec![0, 0, 0, 0, 3, 6]));
+
+        let _n = server
+            .mock("POST", "/subjects/heartbeat-key/versions")
+            .with_status(200)
+            .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+            .with_body(r#"{"id":4}"#)
+            .create();
+
+        let primitive_schema_strategy = SubjectNameStrategy::TopicNameStrategyWithSchema(
+            String::from("heartbeat"),
+            true,
+            get_supplied_schema(&Schema::String),
+        );
+        let bytes = encoder.encode_struct("key-value", &primitive_schema_strategy);
+
+        assert_eq!(
+            bytes,
+            Ok(vec![
+                0, 0, 0, 0, 4, 18, 107, 101, 121, 45, 118, 97, 108, 117, 101
+            ])
+        );
+    }
+
+    #[test]
+    fn build_stream() {
+        let mut server = Server::new();
+        let _m = server.mock("GET", "/schemas/ids/1?deleted=true")
             .with_status(200)
             .with_header("content-type", "application/vnd.schemaregistry.v1+json")
             .with_body(r#"{"schema":"{\"type\":\"record\",\"name\":\"StringMessage\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"message\",\"type\":\"string\"}]}"}"#)
+            .create();
+
+        let _n = server .mock("GET", "/subjects/topicA-some.namespace.StringIntMessage/versions/latest")
+            .with_status(200)
+            .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+            .with_body(r#"{"subject":"StringIntMessage-value","version":1,"id":3,"schema":"{\"type\":\"record\",\"name\":\"StringIntMessage\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"message\",\"type\":\"string\"},{\"name\":\"id\",\"type\":\"long\"}]}"}"#)
             .create();
 
         println!("{:?}", StringMessage::get_schema().canonical_form());
@@ -148,9 +200,9 @@ mod test {
         let decoder = AvroSRDecoder::new(sr_settings.clone());
 
         let avro_encoder = AvroEncoder::new(sr_settings);
-        let s_n_strat = SubjectNameStrategy::TopicRecordNameStrategy(
-            "topicA".to_string(),
-            "recordA".to_string(),
+        let s_n_strategy = SubjectNameStrategy::TopicRecordNameStrategy(
+            String::from("topicA"),
+            String::from("some.namespace.StringIntMessage"),
         );
 
         let stream = context
@@ -160,7 +212,7 @@ mod test {
             .transform(
                 Some(Arc::new(Encoder::AvroSREncoder(AvroSREncoder::new(
                     avro_encoder,
-                    s_n_strat,
+                    s_n_strategy,
                 )))),
                 vec![TestTransformation::new()],
             )
@@ -172,9 +224,10 @@ mod test {
     }
 
     #[derive(Debug, Serialize, Deserialize, AvroSchema)]
-    #[serde(rename = "some.namespace.StringMessage")]
-    pub struct StringMessage {
-        message: String,
+    #[serde(rename = "some.namespace.StringIntMessage")]
+    pub struct StringIntMessage {
+        pub message: String,
+        pub id: i64,
     }
 
     struct TestTransformation;
@@ -195,13 +248,17 @@ mod test {
 
             if let Some(batch_name) = input.clone().get_batch_name() {
                 match batch_name.as_str() {
-                    "test1" => {
+                    "StringMessage" => {
                         if let Batch::Uniform(UniformBatch::Custom(custom)) = batch.as_ref() {
                             let transformed_data = custom
-                                .into_iter()
+                                .iter()
                                 .map(|a| {
-                                    let val = a.downcast_ref::<String>().unwrap();
-                                    let out = format!("{} xyz", val);
+                                    let val = a.downcast_ref::<StringMessage>().unwrap();
+
+                                    let out = StringIntMessage {
+                                        message: val.message.clone(),
+                                        id: 0,
+                                    };
 
                                     if let Encoder::AvroSREncoder(encoder) =
                                         encoder.clone().unwrap().as_ref()

@@ -29,10 +29,7 @@ impl ActionPlan for Convert {
         let input = self.input.execute();
 
         Box::new(
-            input
-                .flat_map(move |container| self.converter.convert(container, self.mapper.clone()))
-                .collect::<Vec<_>>()
-                .into_iter(),
+            input.flat_map(move |container| self.converter.convert(container, self.mapper.clone())),
         )
     }
 

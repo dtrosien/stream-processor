@@ -27,12 +27,10 @@ impl Transform {
 impl ActionPlan for Transform {
     fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let input = self.input.execute();
-
         Box::new(input.flat_map(move |container| {
-            self.transformations.iter().flat_map(move |t| {
-                t.execute(container.clone(), self.encoder.clone())
-                    .into_iter()
-            })
+            self.transformations
+                .iter()
+                .flat_map(move |t| t.execute(container.clone(), self.encoder.clone()))
         }))
     }
 

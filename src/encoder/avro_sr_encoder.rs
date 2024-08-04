@@ -1,11 +1,7 @@
-use crate::container::{Batch, BatchContainer, GenericBatchContainer};
-
 use apache_avro::types::Value;
 use schema_registry_converter::blocking::avro::AvroEncoder;
 use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
 use serde::Serialize;
-use std::any::Any;
-use std::sync::Arc;
 
 pub struct AvroSREncoder {
     encoder: AvroEncoder,
@@ -27,11 +23,6 @@ impl AvroSREncoder {
             Ok(v) => v,
             Err(e) => panic!("Error getting payload: {}", e),
         };
-        // Some(GenericBatchContainer::new(
-        //     Arc::new(payload) as Arc<dyn Any>,
-        //     None,
-        //     MsgType::Raw(RawTypes::Bytes),
-        // ))
         Some(payload)
     }
 
@@ -43,11 +34,6 @@ impl AvroSREncoder {
                 Ok(v) => v,
                 Err(e) => panic!("Error getting payload: {}", e),
             };
-            // Some(GenericBatchContainer::new(
-            //     Arc::new(Batch::AnyBatch(payload)),
-            //     None,
-            //     MsgType::Raw(RawTypes::Bytes),
-            // ))
             Some(payload)
         } else {
             panic!("todo")

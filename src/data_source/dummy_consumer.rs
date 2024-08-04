@@ -45,6 +45,7 @@ impl DataSource for DummyConsumer {
     fn commit(&self) {}
 }
 #[derive(Debug, Serialize, Deserialize, AvroSchema)]
+#[serde(rename = "some.namespace.StringMessage")]
 pub struct StringMessage {
     pub message: String,
 }

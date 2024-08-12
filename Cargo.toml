@@ -21,7 +21,7 @@ anyhow = "1"
 thiserror = "1"
 uuid = { version = "1", features = ["v4", "serde"] }
 futures-util = "0.3.28"
-fake = "2.9.2" # create fake test data e.g email adresses etc
+fake = { version = "2.9.2", features = ["derive", "uuid", "chrono"] } # create fake test data e.g email adresses etc
 chrono = "0.4.38"
 rand = "0.8.5"
 futures = "0.3.30"

@@ -139,7 +139,7 @@ mod test {
         );
 
         let stream = context
-            .dummy()
+            .dummy::<StringMessage>(10)
             .deserialize(decoder)
             .convert(MapperImpl::new(), AvroValueConverter::new())
             .transform(

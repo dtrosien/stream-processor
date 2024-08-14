@@ -1,6 +1,9 @@
+use apache_avro::AvroSchema;
 use chrono::Utc;
 use fake::{Dummy, Fake, Faker};
 use uuid::Uuid;
+
+// todo get AvroSchema to work here
 
 #[derive(Debug)]
 pub struct TestStruct {
@@ -12,7 +15,7 @@ pub struct TestStruct {
 
 #[derive(Debug)]
 pub struct BinaryRecord {
-    id: usize,
+    id: u64,
     name: String,
     timestamp_ms: i64,
     binary_type: BinaryType,

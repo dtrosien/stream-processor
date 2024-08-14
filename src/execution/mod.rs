@@ -4,8 +4,11 @@ use crate::data_source::dummy_consumer::DummyConsumer;
 use crate::data_source::kafka_consumer::KafkaConsumer;
 use crate::data_source::DataSource;
 use crate::stream::{Stream, StreamImpl};
+use apache_avro::AvroSchema;
+use fake::{Dummy, Faker};
 use log::info;
 use rdkafka::ClientConfig;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -33,8 +36,11 @@ impl ExecutionContext {
         })
     }
 
-    pub fn dummy(&self) -> Arc<StreamImpl> {
-        let ds: Arc<dyn DataSource> = DummyConsumer::new();
+    pub fn dummy<T: Serialize + Dummy<Faker> + AvroSchema + 'static>(
+        &self,
+        batch_size: u64,
+    ) -> Arc<StreamImpl> {
+        let ds: Arc<dyn DataSource> = DummyConsumer::<T>::new(batch_size);
         Arc::new(StreamImpl {
             plan: Some(Scan::new(ds)),
         })

@@ -1,41 +1,43 @@
 use crate::container::{Batch, BatchContainer, GenericBatchContainer};
 use crate::data_source::DataSource;
 use crate::type_definitions::MixedBatch;
-use apache_avro::{to_avro_datum, to_value, AvroSchema, Schema};
-use parquet::data_type::AsBytes;
+use apache_avro::{to_avro_datum, to_value, AvroSchema};
+use fake::{Dummy, Fake, Faker};
 use serde::{Deserialize, Serialize};
+use std::marker::PhantomData;
 use std::sync::Arc;
 
-pub struct DummyConsumer {}
+pub struct DummyConsumer<T: Serialize + Dummy<Faker> + AvroSchema> {
+    pub dummy_data: PhantomData<T>, // todo should be able to have really mixed data in the source... so multiple phantomdata
+    pub batch_size: u64,
+}
 
-impl DummyConsumer {
-    pub fn new() -> Arc<Self> {
-        Arc::new(DummyConsumer {})
+impl<T: Serialize + Dummy<Faker> + AvroSchema> DummyConsumer<T> {
+    pub fn new(batch_size: u64) -> Arc<Self> {
+        Arc::new(DummyConsumer::<T> {
+            dummy_data: PhantomData,
+            batch_size,
+        })
     }
 }
 
-impl DataSource for DummyConsumer {
+impl<T: Serialize + Dummy<Faker> + AvroSchema> DataSource for DummyConsumer<T> {
     fn read_batch(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
-        let artificial_msgs = vec!["hallo", "dies", "ist", "ein", "test"];
         let magic_byte = 0u8;
         let id_bytes = 1_u32.to_be_bytes();
-        let msg: Vec<Arc<Vec<u8>>> = artificial_msgs
+        let schema = T::get_schema();
+        let msg = (0..self.batch_size)
             .into_iter()
-            .map(|s| {
-                let msg = StringMessage {
-                    message: s.to_string(),
-                };
-
-                let schema = StringMessage::get_schema();
-                let avro_binary = to_avro_datum(&schema, to_value(msg).unwrap()).unwrap();
-
+            .map(|_| {
+                let a = T::dummy(&Faker);
+                let avro_binary = to_avro_datum(&schema, to_value(a).unwrap()).unwrap();
                 let mut byte_vector = Vec::new();
                 byte_vector.push(magic_byte);
                 byte_vector.extend(id_bytes);
                 byte_vector.extend_from_slice(&avro_binary);
                 Arc::new(byte_vector)
             })
-            .collect();
+            .collect::<Vec<_>>();
 
         let batch = Arc::new(Batch::Mixed(MixedBatch::Bytes(msg)));
         let container: Arc<dyn BatchContainer> = GenericBatchContainer::new(batch, None);
@@ -44,7 +46,7 @@ impl DataSource for DummyConsumer {
 
     fn commit(&self) {}
 }
-#[derive(Debug, Serialize, Deserialize, AvroSchema)]
+#[derive(Debug, Serialize, Deserialize, AvroSchema, Dummy)]
 #[serde(rename = "some.namespace.StringMessage")]
 pub struct StringMessage {
     pub message: String,

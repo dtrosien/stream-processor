@@ -2,10 +2,12 @@ use crate::action_plan::ActionPlan;
 use crate::container::BatchContainer;
 use crate::encoder::Encoder;
 use crate::transformation::Transformation;
+use crate::type_mapper::TypeMapper;
 use std::sync::Arc;
 
 pub struct Transform {
     input: Arc<dyn ActionPlan>,
+    mapper: Option<Arc<dyn TypeMapper>>,
     encoder: Option<Arc<Encoder>>,
     transformations: Vec<Arc<dyn Transformation>>,
 }
@@ -13,11 +15,13 @@ pub struct Transform {
 impl Transform {
     pub fn new(
         input: Arc<dyn ActionPlan>,
+        mapper: Option<Arc<dyn TypeMapper>>,
         encoder: Option<Arc<Encoder>>,
         transformations: Vec<Arc<dyn Transformation>>,
     ) -> Arc<Self> {
         Arc::new(Transform {
             input,
+            mapper,
             encoder,
             transformations,
         })

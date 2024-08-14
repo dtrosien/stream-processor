@@ -25,6 +25,7 @@ pub trait Stream {
     ) -> Arc<dyn Stream>;
     fn transform(
         self: Arc<Self>,
+        mapper: Option<Arc<dyn TypeMapper>>,
         encoder: Option<Arc<Encoder>>,
         transformations: Vec<Arc<dyn Transformation>>,
     ) -> Arc<dyn Stream>;
@@ -61,12 +62,14 @@ impl Stream for StreamImpl {
 
     fn transform(
         self: Arc<Self>,
+        mapper: Option<Arc<dyn TypeMapper>>,
         encoder: Option<Arc<Encoder>>,
         transformations: Vec<Arc<dyn Transformation>>,
     ) -> Arc<dyn Stream> {
         Arc::new(StreamImpl {
             plan: Some(Transform::new(
                 self.plan.clone().expect("todo"),
+                mapper,
                 encoder,
                 transformations,
             )),
@@ -140,6 +143,7 @@ mod test {
             .deserialize(decoder)
             .convert(MapperImpl::new(), AvroValueConverter::new())
             .transform(
+                None,
                 Some(Arc::new(Encoder::AvroSREncoder(AvroSREncoder::new(
                     avro_encoder,
                     s_n_strategy,
@@ -148,9 +152,7 @@ mod test {
             )
             .write(Arc::new(KafkaProducer {}));
 
-        let action_plan = stream.action_plan();
-
-        let _ = action_plan.execute();
+        context.execute_once(stream, false);
     }
 
     #[derive(Debug, Serialize, Deserialize, AvroSchema)]

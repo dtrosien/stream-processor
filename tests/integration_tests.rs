@@ -18,8 +18,11 @@
 // use stream_processor::telemetry::{init_metrics, init_test_tracing};
 // use tracing::{info, warn};
 //
-// mod transformations;
+mod custom_types;
+mod mappers;
+mod transformations;
 //
+
 // #[tokio::test(flavor = "multi_thread", worker_threads = 8)]
 // async fn test_kafka_to_kafka() {
 //     init_test_tracing();

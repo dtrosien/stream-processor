@@ -1,6 +1,6 @@
 use crate::container::{Batch, BatchContainer};
 use crate::data_sink::DataSink;
-use crate::type_definitions::UniformBatch;
+use crate::type_definitions::{ErrorBatch, UniformBatch};
 use async_trait::async_trait;
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use std::sync::Arc;
@@ -13,7 +13,10 @@ pub struct KafkaProducer {
 
 #[async_trait]
 impl DataSink for KafkaProducer {
-    fn write(&self, input: Arc<dyn BatchContainer>) {
+    fn write(
+        &self,
+        input: Arc<dyn BatchContainer>,
+    ) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let batch = input.clone().get_batch();
 
         if let Batch::Uniform(UniformBatch::Bytes(bytes_batch)) = batch.as_ref() {
@@ -26,9 +29,11 @@ impl DataSink for KafkaProducer {
                 //     Duration::from_secs(0),
                 // );
                 // .await;
-
                 println!("writer got bites: {}", item.len())
-            })
+            });
+            Box::new(vec![].into_iter())
+        } else {
+            Box::new(vec![input].into_iter())
         }
     }
 }

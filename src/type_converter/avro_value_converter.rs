@@ -14,6 +14,8 @@ impl AvroValueConverter {
     }
 }
 
+// todo remove class completely if new integration test is worling with mapper in transformation
+
 /// converts avro values to custom types
 impl TypeConverter for AvroValueConverter {
     fn convert(
@@ -33,17 +35,20 @@ impl TypeConverter for AvroValueConverter {
             let converted_values = value_batch
                 .iter()
                 .map(|value| {
-                    let data = match transform_type {
-                        CustomTypes::StringMessage => {
+                    let data = match transform_type.get_type_id() {
+                        0 => {
                             let a =
                                 Arc::new(apache_avro::from_value::<StringMessage>(value).unwrap());
                             println!("got {}", a.as_ref().message);
                             batch_name = Some("StringMessage".to_string());
                             a as Arc<dyn Any>
                         }
-                        CustomTypes::B => {
+                        1 => {
                             let b = Arc::new(apache_avro::from_value::<String>(value).unwrap());
                             b as Arc<dyn Any>
+                        }
+                        _ => {
+                            panic!("no id match for custom data")
                         }
                     };
                     data
@@ -59,17 +64,5 @@ impl TypeConverter for AvroValueConverter {
         } else {
             panic!("not supported")
         }
-    }
-}
-
-impl CustomType for u64 {
-    fn get_name(self: Arc<Self>) -> String {
-        "u64".to_string()
-    }
-}
-
-impl CustomType for String {
-    fn get_name(self: Arc<Self>) -> String {
-        "String".to_string()
     }
 }

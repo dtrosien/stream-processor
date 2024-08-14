@@ -19,14 +19,9 @@ impl Write {
 impl ActionPlan for Write {
     fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let input = self.input.execute();
-        let _ = Box::new(input.map(move |container| self.data_sink.write(container)))
-            .collect::<Vec<_>>();
+        let errors = Box::new(input.flat_map(move |container| self.data_sink.write(container)));
         self.commit_batch();
-
-        // todo let write return containers, which keeps error items (maybe a new batch type), these erros can then be handles together or collected etc
-        let cc: Arc<dyn BatchContainer> =
-            GenericBatchContainer::new(Arc::from(Batch::Mixed(MixedBatch::Any(vec![]))), None);
-        Box::new(vec![cc].into_iter())
+        errors
     }
 
     fn child(&self) -> Option<Arc<dyn ActionPlan>> {

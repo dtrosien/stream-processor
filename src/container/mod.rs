@@ -1,4 +1,4 @@
-use crate::type_definitions::{MixedBatch, UniformBatch};
+use crate::type_definitions::{ErrorBatch, MixedBatch, UniformBatch};
 use arrow::array::RecordBatch;
 use std::any::Any;
 use std::collections::HashMap;
@@ -22,6 +22,7 @@ pub struct GenericBatchContainer {
 pub enum Batch {
     Uniform(UniformBatch),
     Mixed(MixedBatch),
+    Error(ErrorBatch),
 }
 
 impl GenericBatchContainer {

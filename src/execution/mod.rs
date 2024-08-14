@@ -4,6 +4,7 @@ use crate::data_source::dummy_consumer::DummyConsumer;
 use crate::data_source::kafka_consumer::KafkaConsumer;
 use crate::data_source::DataSource;
 use crate::stream::{Stream, StreamImpl};
+use log::info;
 use rdkafka::ClientConfig;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -46,6 +47,8 @@ impl ExecutionContext {
         } else {
             stream.action_plan()
         };
-        let _ = plan.execute(); // todo check what writer returns .. maybe return stats or so in container
+        let errors = plan.execute().collect::<Vec<_>>();
+        // todo collect and log infos of error batches
+        info!("Num ErrorBatches: {}", errors.len())
     }
 }

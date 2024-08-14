@@ -1,10 +1,11 @@
-use crate::type_definitions::CustomTypes;
+use crate::type_definitions::{CustomType, CustomTypes};
 use std::sync::Arc;
 
 pub trait TypeMapper: Send {
-    fn map_name_to_type(&self, input: &str) -> CustomTypes;
+    fn map_name_to_type(&self, input: &str) -> Arc<dyn CustomType>;
 }
 
+// todo move example impl into integration tests
 pub struct MapperImpl;
 
 impl MapperImpl {
@@ -13,10 +14,10 @@ impl MapperImpl {
     }
 }
 impl TypeMapper for MapperImpl {
-    fn map_name_to_type(&self, input: &str) -> CustomTypes {
+    fn map_name_to_type(&self, input: &str) -> Arc<dyn CustomType> {
         match input {
-            "some.namespace.StringMessage" => CustomTypes::StringMessage,
-            "banana" => CustomTypes::B,
+            "some.namespace.StringMessage" => Arc::new(CustomTypes::StringMessage),
+            "banana" => Arc::new(CustomTypes::B),
             _ => panic!("It's something else!{}", input),
         }
     }

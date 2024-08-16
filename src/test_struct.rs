@@ -1,8 +1,9 @@
 use apache_avro::AvroSchema;
 use chrono::Utc;
 use fake::{Dummy, Fake, Faker};
+use serde::Serialize;
 
-#[derive(Debug, AvroSchema)]
+#[derive(Debug, AvroSchema, Serialize)]
 pub struct TestStruct {
     timestamp_ms: i64,
     uuid: String, // avro does not support uuid as type
@@ -10,7 +11,7 @@ pub struct TestStruct {
     records_binaries: Vec<BinaryRecord>,
 }
 
-#[derive(Debug, AvroSchema)]
+#[derive(Debug, AvroSchema, Serialize)]
 pub struct BinaryRecord {
     id: i64,
     name: String,
@@ -18,7 +19,7 @@ pub struct BinaryRecord {
     binary_type: BinaryType,
     value: Vec<u8>,
 }
-#[derive(Debug, Dummy, AvroSchema)]
+#[derive(Debug, Dummy, AvroSchema, Serialize)]
 pub enum BinaryType {
     A,
     B,

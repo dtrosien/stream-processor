@@ -91,7 +91,7 @@ impl Stream for StreamImpl {
 mod test {
     use crate::container::{Batch, BatchContainer, GenericBatchContainer};
     use crate::data_sink::kafka_producer::KafkaProducer;
-    use crate::data_source::dummy_consumer::StringMessage;
+    use crate::data_source::dummy_source::StringMessage;
     use crate::decoder::avro_sr_decoder::AvroSRDecoder;
     use crate::encoder::avro_sr_encoder::AvroSREncoder;
     use crate::encoder::Encoder;
@@ -144,10 +144,7 @@ mod test {
             .convert(MapperImpl::new(), AvroValueConverter::new())
             .transform(
                 None,
-                Some(Arc::new(Encoder::AvroSREncoder(AvroSREncoder::new(
-                    avro_encoder,
-                    s_n_strategy,
-                )))),
+                Some(AvroSREncoder::new(avro_encoder, s_n_strategy)),
                 vec![TestTransformation::new()],
             )
             .write(Arc::new(KafkaProducer {}));

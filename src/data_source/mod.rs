@@ -1,4 +1,4 @@
-pub mod dummy_consumer;
+pub mod dummy_source;
 pub mod kafka_consumer;
 
 use crate::container::BatchContainer;

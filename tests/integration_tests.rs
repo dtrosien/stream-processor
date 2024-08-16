@@ -1,27 +1,64 @@
-// use futures_util::future::join_all;
-// use opentelemetry::global::shutdown_tracer_provider;
-// use rdkafka::admin::{AdminClient, NewTopic, TopicReplication};
-// use rdkafka::client::DefaultClientContext;
-// use rdkafka::config::RDKafkaLogLevel;
-// use rdkafka::ClientConfig;
+use crate::mappers::MapperTestImpl;
+use crate::transformations::FlattenStructTransformation;
+use apache_avro::AvroSchema;
+use mockito::Server;
+use schema_registry_converter::blocking::avro::AvroEncoder;
+use schema_registry_converter::blocking::schema_registry::SrSettings;
+use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
+use std::collections::HashMap;
+use std::sync::Arc;
+use stream_processor::data_sink::dummy_sink::DummySink;
+use stream_processor::decoder::avro_sr_decoder::AvroSRDecoder;
+use stream_processor::encoder::avro_sr_encoder::AvroSREncoder;
+use stream_processor::execution::ExecutionContext;
+use stream_processor::stream::Stream;
+use stream_processor::test_struct::TestStruct;
+
+pub mod custom_types;
+pub mod mappers;
+pub mod transformations;
 //
-// use crate::transformations::example_transformations::test::{PrintName, SomeTransform};
-// use apache_avro::AvroSchema;
-// use std::time::Instant;
-// use stream_processor::domain::test::{get_test_person, Person};
-// use stream_processor::kafka_sink::kafka_avro_sink::KafkaAvroSink;
-// use stream_processor::kafka_source::general::CustomContext;
-// use stream_processor::kafka_source::kafka_avro_source::KafkaAvroSource;
-// use stream_processor::object_store_sink::azure_sink::AzureSink;
-// use stream_processor::sink_deprecated::Sink;
-// use stream_processor::stream_deprecated::{run_streams, ReadMode, StreamCreatorBuilder};
-// use stream_processor::telemetry::{init_metrics, init_test_tracing};
-// use tracing::{info, warn};
-//
-mod custom_types;
-mod mappers;
-mod transformations;
-//
+
+//todo implement test trafo and fix mock responses for new flat struct struct(s)
+#[test]
+fn dummy_to_dummy_with_sr() {
+    let mut server = Server::new();
+    let _m = server.mock("GET", "/schemas/ids/1?deleted=true")
+        .with_status(200)
+        .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+        .with_body(r#"{"schema":"{\"type\":\"record\",\"name\":\"StringMessage\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"records_binaries\",\"type\":{\"type\":\"array\",\"items\":{\"name\":\"BinaryRecord\",\"type\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":\"long\"},{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"binary_type\",\"type\":{\"name\":\"BinaryType\",\"type\":\"enum\",\"symbols\":[\"A\",\"B\",\"C\"]}},{\"name\":\"value\",\"type\":{\"type\":\"array\",\"items\":\"int\"}}]}}}]}"}"#)
+        .create();
+
+    let _n = server .mock("GET", "/subjects/topicA-some.namespace.TestStructFlat/versions/latest")
+        .with_status(200)
+        .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+        .with_body(r#"{"subject":"TestStructFlat-value","version":1,"id":3,"schema":"{\"type\":\"record\",\"name\":\"StringIntMessage\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"message\",\"type\":\"string\"},{\"name\":\"id\",\"type\":\"long\"}]}"}"#)
+        .create();
+
+    println!("{:?}", TestStruct::get_schema().canonical_form());
+
+    let context = ExecutionContext::new(HashMap::default());
+    let sr_settings = SrSettings::new(server.url());
+    let decoder = AvroSRDecoder::new(sr_settings.clone());
+
+    let avro_encoder = AvroEncoder::new(sr_settings);
+    let s_n_strategy = SubjectNameStrategy::TopicRecordNameStrategy(
+        String::from("topicA"),
+        String::from("some.namespace.TestStructFlat"), // todo was mit mehreren outputs ? ->  meherere subjectstrategies uebergebn in AvroSREncoder
+    );
+
+    let stream = context
+        .dummy::<TestStruct>(10)
+        .deserialize(decoder)
+        .transform(
+            Some(MapperTestImpl::new()),
+            Some(AvroSREncoder::new(avro_encoder, s_n_strategy)),
+            vec![FlattenStructTransformation::new()],
+        )
+        .write(Arc::new(DummySink {}));
+
+    context.execute_once(stream, false);
+}
 
 // #[tokio::test(flavor = "multi_thread", worker_threads = 8)]
 // async fn test_kafka_to_kafka() {

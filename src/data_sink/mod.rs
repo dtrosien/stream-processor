@@ -1,3 +1,4 @@
+pub mod dummy_sink;
 pub mod kafka_producer;
 
 use crate::container::BatchContainer;

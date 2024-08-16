@@ -1,6 +1,6 @@
 use crate::action_plan::scan::Scan;
 use crate::container::BatchContainer;
-use crate::data_source::dummy_consumer::DummyConsumer;
+use crate::data_source::dummy_source::DummySource;
 use crate::data_source::kafka_consumer::KafkaConsumer;
 use crate::data_source::DataSource;
 use crate::stream::{Stream, StreamImpl};
@@ -40,7 +40,7 @@ impl ExecutionContext {
         &self,
         batch_size: u64,
     ) -> Arc<StreamImpl> {
-        let ds: Arc<dyn DataSource> = DummyConsumer::<T>::new(batch_size);
+        let ds: Arc<dyn DataSource> = DummySource::<T>::new(batch_size);
         Arc::new(StreamImpl {
             plan: Some(Scan::new(ds)),
         })

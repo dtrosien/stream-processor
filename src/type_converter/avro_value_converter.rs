@@ -1,5 +1,5 @@
 use crate::container::{Batch, BatchContainer, GenericBatchContainer};
-use crate::data_source::dummy_consumer::StringMessage;
+use crate::data_source::dummy_source::StringMessage;
 use crate::type_converter::TypeConverter;
 use crate::type_definitions::{CustomType, CustomTypes, UniformBatch};
 use crate::type_mapper::TypeMapper;

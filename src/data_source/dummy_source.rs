@@ -7,21 +7,21 @@ use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
 use std::sync::Arc;
 
-pub struct DummyConsumer<T: Serialize + Dummy<Faker> + AvroSchema> {
+pub struct DummySource<T: Serialize + Dummy<Faker> + AvroSchema> {
     pub dummy_data: PhantomData<T>, // todo should be able to have really mixed data in the source... so multiple phantomdata
     pub batch_size: u64,
 }
 
-impl<T: Serialize + Dummy<Faker> + AvroSchema> DummyConsumer<T> {
+impl<T: Serialize + Dummy<Faker> + AvroSchema> DummySource<T> {
     pub fn new(batch_size: u64) -> Arc<Self> {
-        Arc::new(DummyConsumer::<T> {
+        Arc::new(DummySource::<T> {
             dummy_data: PhantomData,
             batch_size,
         })
     }
 }
 
-impl<T: Serialize + Dummy<Faker> + AvroSchema> DataSource for DummyConsumer<T> {
+impl<T: Serialize + Dummy<Faker> + AvroSchema> DataSource for DummySource<T> {
     fn read_batch(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let magic_byte = 0u8;
         let id_bytes = 1_u32.to_be_bytes();

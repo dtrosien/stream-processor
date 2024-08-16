@@ -1,27 +1,24 @@
 use apache_avro::AvroSchema;
 use chrono::Utc;
 use fake::{Dummy, Fake, Faker};
-use uuid::Uuid;
 
-// todo get AvroSchema to work here
-
-#[derive(Debug)]
+#[derive(Debug, AvroSchema)]
 pub struct TestStruct {
     timestamp_ms: i64,
-    uuid: Uuid,
+    uuid: String, // avro does not support uuid as type
     source: String,
     records_binaries: Vec<BinaryRecord>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, AvroSchema)]
 pub struct BinaryRecord {
-    id: u64,
+    id: i64,
     name: String,
     timestamp_ms: i64,
     binary_type: BinaryType,
     value: Vec<u8>,
 }
-#[derive(Debug, Dummy)]
+#[derive(Debug, Dummy, AvroSchema)]
 pub enum BinaryType {
     A,
     B,

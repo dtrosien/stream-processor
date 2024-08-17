@@ -12,7 +12,7 @@ use stream_processor::decoder::avro_sr_decoder::AvroSRDecoder;
 use stream_processor::encoder::avro_sr_encoder::AvroSREncoder;
 use stream_processor::execution::ExecutionContext;
 use stream_processor::stream::Stream;
-use stream_processor::test_struct::TestStruct;
+use stream_processor::test_struct::{FlatA, TestStruct};
 
 pub mod custom_types;
 pub mod mappers;
@@ -29,30 +29,39 @@ fn dummy_to_dummy_with_sr() {
         .with_body(r#"{"schema":"{\"type\":\"record\",\"name\":\"StringMessage\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"records_binaries\",\"type\":{\"type\":\"array\",\"items\":{\"name\":\"BinaryRecord\",\"type\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":\"long\"},{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"binary_type\",\"type\":{\"name\":\"BinaryType\",\"type\":\"enum\",\"symbols\":[\"A\",\"B\",\"C\"]}},{\"name\":\"value\",\"type\":{\"type\":\"array\",\"items\":\"int\"}}]}}}]}"}"#)
         .create();
 
-    let _n = server .mock("GET", "/subjects/topicA-some.namespace.TestStructFlat/versions/latest")
+    let _a = server.mock("GET", "/subjects/topicA-some.namespace.FlatA/versions/latest")
         .with_status(200)
         .with_header("content-type", "application/vnd.schemaregistry.v1+json")
-        .with_body(r#"{"subject":"TestStructFlat-value","version":1,"id":3,"schema":"{\"type\":\"record\",\"name\":\"StringIntMessage\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"message\",\"type\":\"string\"},{\"name\":\"id\",\"type\":\"long\"}]}"}"#)
+        .with_body(r#"{"subject":"FlatA-value","version":1,"id":3,"schema":"{\"type\":\"record\",\"name\":\"FlatA\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"value\",\"type\":{\"type\":\"array\",\"items\":\"int\"}}]}"}"#)
+        .create();
+
+    let _b = server.mock("GET", "/subjects/topicA-some.namespace.FlatB/versions/latest")
+        .with_status(200)
+        .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+        .with_body(r#"{"subject":"FlatB-value","version":1,"id":4,"schema":"{\"type\":\"record\",\"name\":\"FlatB\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"value\",\"type\":{\"type\":\"array\",\"items\":\"int\"}}]}"}"#)
+        .create();
+
+    let _c = server.mock("GET", "/subjects/topicA-some.namespace.FlatC/versions/latest")
+        .with_status(200)
+        .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+        .with_body(r#"{"subject":"FlatC-value","version":1,"id":5,"schema":"{\"type\":\"record\",\"name\":\"FlatC\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"value\",\"type\":{\"type\":\"array\",\"items\":\"int\"}}]}"}"#)
         .create();
 
     println!("{:?}", TestStruct::get_schema().canonical_form());
 
+    println!("FLAT_A: {:?}", FlatA::get_schema().canonical_form());
+
     let context = ExecutionContext::new(HashMap::default());
     let sr_settings = SrSettings::new(server.url());
     let decoder = AvroSRDecoder::new(sr_settings.clone());
-
     let avro_encoder = AvroEncoder::new(sr_settings);
-    let s_n_strategy = SubjectNameStrategy::TopicRecordNameStrategy(
-        String::from("topicA"),
-        String::from("some.namespace.TestStructFlat"), // todo was mit mehreren outputs ? ->  meherere subjectstrategies uebergebn in AvroSREncoder
-    );
 
     let stream = context
         .dummy::<TestStruct>(10)
         .deserialize(decoder)
         .transform(
             Some(MapperTestImpl::new()),
-            Some(AvroSREncoder::new(avro_encoder, s_n_strategy)),
+            Some(AvroSREncoder::new(avro_encoder)),
             vec![FlattenStructTransformation::new()],
         )
         .write(Arc::new(DummySink {}));

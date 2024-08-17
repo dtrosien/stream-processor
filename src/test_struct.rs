@@ -48,6 +48,31 @@ impl Dummy<Faker> for BinaryRecord {
         }
     }
 }
+//////////////////////////////////////////////////////////////////////
+
+#[derive(Debug, AvroSchema, Serialize)]
+pub struct FlatA {
+    timestamp_ms: i64,
+    uuid: String, // avro does not support uuid as type
+    source: String,
+    value: Vec<u8>,
+}
+
+#[derive(Debug, AvroSchema, Serialize)]
+pub struct FlatB {
+    timestamp_ms: i64,
+    uuid: String, // avro does not support uuid as type
+    source: String,
+    value: Vec<u8>,
+}
+
+#[derive(Debug, AvroSchema, Serialize)]
+pub struct FlatC {
+    timestamp_ms: i64,
+    uuid: String, // avro does not support uuid as type
+    source: String,
+    value: Vec<u8>,
+}
 
 #[cfg(test)]
 mod test {

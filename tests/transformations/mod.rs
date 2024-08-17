@@ -1,3 +1,4 @@
+use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
 use std::sync::Arc;
 use stream_processor::container::{Batch, BatchContainer, GenericBatchContainer};
 use stream_processor::data_source::dummy_source::StringMessage;
@@ -6,11 +7,34 @@ use stream_processor::transformation::Transformation;
 use stream_processor::type_definitions::UniformBatch;
 
 // pub mod example_transformations;
-pub struct FlattenStructTransformation;
+pub struct FlattenStructTransformation {
+    s_n_strategy_a: SubjectNameStrategy,
+    s_n_strategy_b: SubjectNameStrategy,
+    s_n_strategy_c: SubjectNameStrategy,
+}
 
 impl FlattenStructTransformation {
     pub fn new() -> Arc<Self> {
-        Arc::new(FlattenStructTransformation {})
+        let s_n_strategy_a = SubjectNameStrategy::TopicRecordNameStrategy(
+            String::from("topicA"),
+            String::from("some.namespace.FlatA"),
+        );
+
+        let s_n_strategy_b = SubjectNameStrategy::TopicRecordNameStrategy(
+            String::from("topicA"),
+            String::from("some.namespace.FlatB"),
+        );
+
+        let s_n_strategy_c = SubjectNameStrategy::TopicRecordNameStrategy(
+            String::from("topicA"),
+            String::from("some.namespace.FlatC"),
+        );
+
+        Arc::new(FlattenStructTransformation {
+            s_n_strategy_a,
+            s_n_strategy_b,
+            s_n_strategy_c,
+        })
     }
 }
 
@@ -34,7 +58,8 @@ impl Transformation for FlattenStructTransformation {
                                 if let Encoder::AvroSREncoder(encoder) =
                                     encoder.clone().unwrap().as_ref()
                                 {
-                                    let bytes = encoder.encode("out").unwrap();
+                                    let bytes =
+                                        encoder.encode("out", &self.s_n_strategy_a).unwrap();
                                     Arc::new(bytes)
                                 } else {
                                     panic!("no encoder")

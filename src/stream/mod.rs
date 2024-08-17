@@ -133,10 +133,6 @@ mod test {
         let decoder = AvroSRDecoder::new(sr_settings.clone());
 
         let avro_encoder = AvroEncoder::new(sr_settings);
-        let s_n_strategy = SubjectNameStrategy::TopicRecordNameStrategy(
-            String::from("topicA"),
-            String::from("some.namespace.StringIntMessage"),
-        );
 
         let stream = context
             .dummy::<StringMessage>(10)
@@ -144,7 +140,7 @@ mod test {
             .convert(MapperImpl::new(), AvroValueConverter::new())
             .transform(
                 None,
-                Some(AvroSREncoder::new(avro_encoder, s_n_strategy)),
+                Some(AvroSREncoder::new(avro_encoder)),
                 vec![TestTransformation::new()],
             )
             .write(Arc::new(KafkaProducer {}));
@@ -159,11 +155,18 @@ mod test {
         pub id: i64,
     }
 
-    struct TestTransformation;
+    struct TestTransformation {
+        s_n_strategy: SubjectNameStrategy,
+    }
 
     impl TestTransformation {
         pub fn new() -> Arc<Self> {
-            Arc::new(TestTransformation {})
+            let s_n_strategy = SubjectNameStrategy::TopicRecordNameStrategy(
+                String::from("topicA"),
+                String::from("some.namespace.StringIntMessage"),
+            );
+
+            Arc::new(TestTransformation { s_n_strategy })
         }
     }
 
@@ -192,7 +195,8 @@ mod test {
                                     if let Encoder::AvroSREncoder(encoder) =
                                         encoder.clone().unwrap().as_ref()
                                     {
-                                        let bytes = encoder.encode(out).unwrap();
+                                        let bytes =
+                                            encoder.encode(out, &self.s_n_strategy).unwrap();
                                         Arc::new(bytes)
                                     } else {
                                         panic!("no encoder")

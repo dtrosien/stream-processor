@@ -14,6 +14,5 @@ pub mod transformation;
 
 pub mod execution;
 pub mod stream;
-pub mod test_struct;
 pub mod type_definitions;
 pub mod type_mapper;

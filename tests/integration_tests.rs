@@ -1,6 +1,7 @@
 use crate::mappers::MapperTestImpl;
 use crate::transformations::FlattenTestStruct;
 use apache_avro::AvroSchema;
+use custom_types::test_struct::{FlatA, TestStruct};
 use mockito::Server;
 use schema_registry_converter::blocking::avro::AvroEncoder;
 use schema_registry_converter::blocking::schema_registry::SrSettings;
@@ -12,7 +13,6 @@ use stream_processor::decoder::avro_sr_decoder::AvroSRDecoder;
 use stream_processor::encoder::avro_sr_encoder::AvroSREncoder;
 use stream_processor::execution::ExecutionContext;
 use stream_processor::stream::Stream;
-use stream_processor::test_struct::{FlatA, TestStruct};
 
 pub mod custom_types;
 pub mod mappers;

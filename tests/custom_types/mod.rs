@@ -1,5 +1,7 @@
 use stream_processor::type_definitions::CustomType;
 
+pub mod test_struct;
+
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum CustomTypes {
     TestStruct,

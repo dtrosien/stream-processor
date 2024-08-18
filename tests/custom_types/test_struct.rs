@@ -76,7 +76,7 @@ pub struct FlatC {
 
 #[cfg(test)]
 mod test {
-    use crate::test_struct::TestStruct;
+    use crate::custom_types::test_struct::TestStruct;
     use fake::{Fake, Faker};
 
     #[test]

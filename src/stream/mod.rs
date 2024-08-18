@@ -100,7 +100,7 @@ mod test {
     use crate::transformation::Transformation;
     use crate::type_converter::avro_value_converter::AvroValueConverter;
     use crate::type_definitions::UniformBatch;
-    use crate::type_mapper::MapperImpl;
+    use crate::type_mapper::{MapperImpl, TypeMapper};
     use apache_avro::AvroSchema;
     use mockito::Server;
 
@@ -174,6 +174,7 @@ mod test {
         fn execute(
             &self,
             input: Arc<dyn BatchContainer>,
+            mapper: Option<Arc<dyn TypeMapper>>,
             encoder: Option<Arc<Encoder>>,
         ) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
             let batch = input.clone().get_batch();

@@ -1,5 +1,5 @@
 use crate::mappers::MapperTestImpl;
-use crate::transformations::FlattenStructTransformation;
+use crate::transformations::FlattenTestStruct;
 use apache_avro::AvroSchema;
 use mockito::Server;
 use schema_registry_converter::blocking::avro::AvroEncoder;
@@ -26,7 +26,7 @@ fn dummy_to_dummy_with_sr() {
     let _m = server.mock("GET", "/schemas/ids/1?deleted=true")
         .with_status(200)
         .with_header("content-type", "application/vnd.schemaregistry.v1+json")
-        .with_body(r#"{"schema":"{\"type\":\"record\",\"name\":\"StringMessage\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"records_binaries\",\"type\":{\"type\":\"array\",\"items\":{\"name\":\"BinaryRecord\",\"type\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":\"long\"},{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"binary_type\",\"type\":{\"name\":\"BinaryType\",\"type\":\"enum\",\"symbols\":[\"A\",\"B\",\"C\"]}},{\"name\":\"value\",\"type\":{\"type\":\"array\",\"items\":\"int\"}}]}}}]}"}"#)
+        .with_body(r#"{"schema":"{\"type\":\"record\",\"name\":\"TestStruct\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"records_binaries\",\"type\":{\"type\":\"array\",\"items\":{\"name\":\"BinaryRecord\",\"type\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":\"long\"},{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"binary_type\",\"type\":{\"name\":\"BinaryType\",\"type\":\"enum\",\"symbols\":[\"A\",\"B\",\"C\"]}},{\"name\":\"value\",\"type\":{\"type\":\"array\",\"items\":\"int\"}}]}}}]}"}"#)
         .create();
 
     let _a = server.mock("GET", "/subjects/topicA-some.namespace.FlatA/versions/latest")
@@ -62,7 +62,7 @@ fn dummy_to_dummy_with_sr() {
         .transform(
             Some(MapperTestImpl::new()),
             Some(AvroSREncoder::new(avro_encoder)),
-            vec![FlattenStructTransformation::new()],
+            vec![FlattenTestStruct::new()],
         )
         .write(Arc::new(DummySink {}));
 

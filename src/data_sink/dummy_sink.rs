@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use std::sync::Arc;
 use std::time::Duration;
-use tracing::{debug, warn};
+use tracing::{debug, info, warn};
 use uuid::Uuid;
 
 pub struct DummySink {}
@@ -19,9 +19,13 @@ impl DataSink for DummySink {
         let batch = input.clone().get_batch();
 
         if let Batch::Uniform(UniformBatch::Bytes(bytes_batch)) = batch.as_ref() {
-            bytes_batch
-                .iter()
-                .for_each(|item| println!("writer got bites: {}", item.len()));
+            bytes_batch.iter().for_each(|item| {
+                println!(
+                    "writer got container:{} with num bites: {}",
+                    input.clone().get_batch_name().unwrap(),
+                    item.len()
+                )
+            });
             Box::new(vec![].into_iter())
         } else {
             warn!("Got Error Batch");

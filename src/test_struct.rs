@@ -1,25 +1,25 @@
 use apache_avro::AvroSchema;
 use chrono::Utc;
 use fake::{Dummy, Fake, Faker};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, AvroSchema, Serialize)]
+#[derive(Debug, AvroSchema, Serialize, Deserialize)]
 pub struct TestStruct {
-    timestamp_ms: i64,
-    uuid: String, // avro does not support uuid as type
-    source: String,
-    records_binaries: Vec<BinaryRecord>,
+    pub timestamp_ms: i64,
+    pub uuid: String, // avro does not support uuid as type
+    pub source: String,
+    pub records_binaries: Vec<BinaryRecord>,
 }
 
-#[derive(Debug, AvroSchema, Serialize)]
+#[derive(Debug, AvroSchema, Serialize, Deserialize)]
 pub struct BinaryRecord {
-    id: i64,
-    name: String,
-    timestamp_ms: i64,
-    binary_type: BinaryType,
-    value: Vec<u8>,
+    pub id: i64,
+    pub name: String,
+    pub timestamp_ms: i64,
+    pub binary_type: BinaryType,
+    pub value: Vec<u8>,
 }
-#[derive(Debug, Dummy, AvroSchema, Serialize)]
+#[derive(Debug, Dummy, AvroSchema, Serialize, Deserialize)]
 pub enum BinaryType {
     A,
     B,
@@ -52,26 +52,26 @@ impl Dummy<Faker> for BinaryRecord {
 
 #[derive(Debug, AvroSchema, Serialize)]
 pub struct FlatA {
-    timestamp_ms: i64,
-    uuid: String, // avro does not support uuid as type
-    source: String,
-    value: Vec<u8>,
+    pub timestamp_ms: i64,
+    pub uuid: String, // avro does not support uuid as type
+    pub source: String,
+    pub value: Vec<u8>,
 }
 
 #[derive(Debug, AvroSchema, Serialize)]
 pub struct FlatB {
-    timestamp_ms: i64,
-    uuid: String, // avro does not support uuid as type
-    source: String,
-    value: Vec<u8>,
+    pub timestamp_ms: i64,
+    pub uuid: String, // avro does not support uuid as type
+    pub source: String,
+    pub value: Vec<u8>,
 }
 
 #[derive(Debug, AvroSchema, Serialize)]
 pub struct FlatC {
-    timestamp_ms: i64,
-    uuid: String, // avro does not support uuid as type
-    source: String,
-    value: Vec<u8>,
+    pub timestamp_ms: i64,
+    pub uuid: String, // avro does not support uuid as type
+    pub source: String,
+    pub value: Vec<u8>,
 }
 
 #[cfg(test)]

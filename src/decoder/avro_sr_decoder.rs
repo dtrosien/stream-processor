@@ -25,8 +25,8 @@ impl Decoder for AvroSRDecoder {
     ) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let decoder = AvroDecoder::new(self.sr_settings.clone());
 
-        // takes a batch decodes each bytes based on its schemaid and regroup them back
-        // in batches with the same schema name (so no regrouping is needed afterwards like in the typematcher).
+        // takes a batch decodes each bytes based on its schema_id and regroup them back
+        // in batches with the same schema name (so no regrouping is needed afterward).
         let batch = msg.get_batch();
         if let Batch::Mixed(MixedBatch::Bytes(bytes)) = batch.as_ref() {
             let mut batch_map: HashMap<String, Vec<Arc<Value>>> = HashMap::new();

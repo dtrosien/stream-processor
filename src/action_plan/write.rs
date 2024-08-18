@@ -1,8 +1,6 @@
 use crate::action_plan::ActionPlan;
-use crate::container::{Batch, BatchContainer, GenericBatchContainer};
+use crate::container::BatchContainer;
 use crate::data_sink::DataSink;
-use crate::type_definitions::{MixedBatch, UniformBatch};
-use std::any::Any;
 use std::sync::Arc;
 
 pub struct Write {

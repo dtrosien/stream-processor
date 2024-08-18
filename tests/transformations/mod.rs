@@ -1,8 +1,6 @@
-use arrow::compute::contains;
 use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
 use std::sync::Arc;
 use stream_processor::container::{Batch, BatchContainer, GenericBatchContainer};
-use stream_processor::data_source::dummy_source::StringMessage;
 use stream_processor::encoder::Encoder;
 use stream_processor::test_struct::{BinaryType, FlatA, FlatB, FlatC, TestStruct};
 use stream_processor::transformation::Transformation;

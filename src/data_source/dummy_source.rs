@@ -2,8 +2,8 @@ use crate::container::{Batch, BatchContainer, GenericBatchContainer};
 use crate::data_source::DataSource;
 use crate::type_definitions::MixedBatch;
 use apache_avro::{to_avro_datum, to_value, AvroSchema};
-use fake::{Dummy, Fake, Faker};
-use serde::{Deserialize, Serialize};
+use fake::{Dummy, Faker};
+use serde::Serialize;
 use std::marker::PhantomData;
 use std::sync::Arc;
 
@@ -45,9 +45,4 @@ impl<T: Serialize + Dummy<Faker> + AvroSchema> DataSource for DummySource<T> {
     }
 
     fn commit(&self) {}
-}
-#[derive(Debug, Serialize, Deserialize, AvroSchema, Dummy)]
-#[serde(rename = "some.namespace.StringMessage")]
-pub struct StringMessage {
-    pub message: String,
 }

@@ -83,12 +83,12 @@ mod test {
     fn build_test_struct() {
         let test_struct: TestStruct = Faker::fake(&Faker);
 
-        println!("num records: {}", test_struct.records_binaries.len());
+        assert!(!test_struct.records_binaries.is_empty());
 
         test_struct
             .records_binaries
             .iter()
             .enumerate()
-            .for_each(|(i, r)| println!("record {}, num bytes: {}", i, r.value.len()));
+            .for_each(|(i, r)| assert!(!r.value.is_empty()))
     }
 }

@@ -3,7 +3,6 @@ use crate::data_source::DataSource;
 use std::any::Any;
 use std::sync::Arc;
 
-pub mod convert;
 pub mod deserialize;
 pub mod scan;
 pub mod transform;

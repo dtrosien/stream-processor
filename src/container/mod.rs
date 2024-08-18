@@ -1,6 +1,4 @@
 use crate::type_definitions::{ErrorBatch, MixedBatch, UniformBatch};
-use arrow::array::RecordBatch;
-use std::any::Any;
 use std::collections::HashMap;
 use std::sync::Arc;
 

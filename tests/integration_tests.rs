@@ -19,7 +19,7 @@ pub mod mappers;
 pub mod transformations;
 //
 
-//todo implement test trafo and fix mock responses for new flat struct struct(s)
+// todo create (another test with different intput structs (see also dummysource) and map to differetn topics in output (see trafotest impl))
 #[test]
 fn dummy_to_dummy_with_sr() {
     let mut server = Server::new();

@@ -15,7 +15,7 @@ impl AvroSREncoder {
     }
 
     pub fn new(encoder: AvroEncoder) -> Arc<Encoder> {
-        Arc::new(Encoder::AvroSREncoder(AvroSREncoder { encoder }))
+        Arc::new(Encoder::AvroSREncoder(Arc::new(AvroSREncoder { encoder })))
     }
 
     pub fn encode(

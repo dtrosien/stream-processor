@@ -22,7 +22,7 @@ impl DataSink for DummySink {
             bytes_batch.iter().for_each(|item| {
                 println!(
                     "writer got container:{} with num bites: {}",
-                    input.clone().get_batch_name().unwrap(),
+                    input.clone().get_type_name().unwrap(),
                     item.len()
                 )
             });

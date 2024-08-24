@@ -66,24 +66,24 @@ impl ContainerBuilder {
         }
     }
 
-    pub fn set_kafka_topic(&mut self, topic_name: &str) -> &mut Self {
+    pub fn with_kafka_topic(mut self, topic_name: &str) -> Self {
         self.metadata
             .insert("kafka.topic".to_string(), topic_name.to_string());
         self
     }
 
-    pub fn set_storage_path(&mut self, topic_name: &str) -> &mut Self {
+    pub fn with_storage_path(mut self, topic_name: &str) -> Self {
         self.metadata
             .insert("storage.path".to_string(), topic_name.to_string());
         self
     }
 
-    pub fn set_meta(&mut self, key: &str, value: &str) -> &mut Self {
+    pub fn with_meta(mut self, key: &str, value: &str) -> Self {
         self.metadata.insert(key.to_string(), value.to_string());
         self
     }
 
-    pub fn set_batch_type(&mut self, batch_type_name: &str) -> &mut Self {
+    pub fn with_batch_type(mut self, batch_type_name: &str) -> Self {
         self.batch_type_name = Some(batch_type_name.to_string());
         self
     }
@@ -99,7 +99,7 @@ impl ContainerBuilder {
 
 #[cfg(test)]
 mod test {
-    use crate::container::{Batch, ContainerBuilder};
+    use crate::container::{Batch, BatchContainer, ContainerBuilder};
     use crate::type_definitions::MixedBatch;
     use std::sync::Arc;
 
@@ -107,10 +107,20 @@ mod test {
     fn build_container() {
         let batch = Arc::new(Batch::Mixed(MixedBatch::Any(vec![])));
 
-        // let container = ContainerBuilder::new(batch)
-        //     .set_batch_type("Any")
-        //     .set_kafka_topic("SomeTopic")
-        //     .set_storage_path("some/path")
-        //     .build();
+        let container = ContainerBuilder::new(batch)
+            .with_batch_type("Any")
+            .with_kafka_topic("SomeTopic")
+            .with_storage_path("some/path")
+            .build();
+
+        assert_eq!(container.clone().batch_type_name.clone().unwrap(), "Any");
+        assert_eq!(
+            container.clone().get_meta("kafka.topic").unwrap(),
+            "SomeTopic"
+        );
+        assert_eq!(
+            container.clone().get_meta("storage.path").unwrap(),
+            "some/path"
+        );
     }
 }

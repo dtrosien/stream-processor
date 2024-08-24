@@ -19,13 +19,19 @@ impl DataSink for DummySink {
         let batch = input.clone().get_batch();
 
         if let Batch::Uniform(UniformBatch::Bytes(bytes_batch)) = batch.as_ref() {
-            bytes_batch.iter().for_each(|item| {
-                println!(
-                    "writer got container:{} with num bites: {}",
-                    input.clone().get_type_name().unwrap(),
-                    item.len()
-                )
-            });
+            println!(
+                "writer got batch of type :{} with num containers: {}",
+                input.clone().get_type_name().unwrap(),
+                bytes_batch.len()
+            );
+            // todo enable again with a verbose flag or something
+            // bytes_batch.iter().for_each(|item| {
+            //     println!(
+            //         "writer got container:{} with num bites: {}",
+            //         input.clone().get_type_name().unwrap(),
+            //         item.len()
+            //     )
+            // });
             Box::new(vec![].into_iter())
         } else {
             warn!("Got Error Batch");

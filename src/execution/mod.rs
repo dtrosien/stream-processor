@@ -40,7 +40,30 @@ impl ExecutionContext {
         &self,
         batch_size: u64,
     ) -> Arc<StreamImpl> {
-        let ds: Arc<dyn DataSource> = DummySource::<T>::new(batch_size);
+        let ds: Arc<dyn DataSource> = DummySource::<T, T, T>::new(batch_size);
+        Arc::new(StreamImpl {
+            plan: Some(Scan::new(ds)),
+        })
+    }
+
+    pub fn dummy_2x<T1, T2>(&self, batch_size: u64) -> Arc<StreamImpl>
+    where
+        T1: Serialize + Dummy<Faker> + AvroSchema + 'static,
+        T2: Serialize + Dummy<Faker> + AvroSchema + 'static,
+    {
+        let ds: Arc<dyn DataSource> = DummySource::<T1, T2, T2>::new(batch_size);
+        Arc::new(StreamImpl {
+            plan: Some(Scan::new(ds)),
+        })
+    }
+
+    pub fn dummy_3x<T1, T2, T3>(&self, batch_size: u64) -> Arc<StreamImpl>
+    where
+        T1: Serialize + Dummy<Faker> + AvroSchema + 'static,
+        T2: Serialize + Dummy<Faker> + AvroSchema + 'static,
+        T3: Serialize + Dummy<Faker> + AvroSchema + 'static,
+    {
+        let ds: Arc<dyn DataSource> = DummySource::<T1, T2, T2>::new(batch_size);
         Arc::new(StreamImpl {
             plan: Some(Scan::new(ds)),
         })

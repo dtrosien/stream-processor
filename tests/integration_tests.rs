@@ -5,7 +5,6 @@ use custom_types::test_struct::{FlatA, TestStruct};
 use mockito::Server;
 use schema_registry_converter::blocking::avro::AvroEncoder;
 use schema_registry_converter::blocking::schema_registry::SrSettings;
-use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
 use std::collections::HashMap;
 use std::sync::Arc;
 use stream_processor::data_sink::dummy_sink::DummySink;
@@ -19,7 +18,7 @@ pub mod mappers;
 pub mod transformations;
 //
 
-// todo create (another test with different intput structs (see also dummysource) and map to differetn topics in output (see trafotest impl))
+// todo create (another test with different intput structs (dummysource can already handle it) and map to differetn topics in output (see trafotest impl))
 #[test]
 fn dummy_to_dummy_with_sr() {
     let mut server = Server::new();
@@ -57,7 +56,7 @@ fn dummy_to_dummy_with_sr() {
     let avro_encoder = AvroEncoder::new(sr_settings);
 
     let stream = context
-        .dummy::<TestStruct>(10)
+        .dummy::<TestStruct>(5)
         .deserialize(decoder)
         .transform(
             Some(MapperTestImpl::new()),

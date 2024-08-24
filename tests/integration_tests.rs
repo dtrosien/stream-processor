@@ -64,7 +64,7 @@ fn dummy_to_dummy_with_sr() {
             Some(AvroSREncoder::new(avro_encoder)),
             vec![FlattenTestStruct::new()],
         )
-        .write(Arc::new(DummySink {}));
+        .write(vec![Arc::new(DummySink {})]);
 
     context.execute_once(stream, false);
 }

@@ -5,19 +5,23 @@ use std::sync::Arc;
 
 pub struct Write {
     input: Arc<dyn ActionPlan>,
-    data_sink: Arc<dyn DataSink>,
+    data_sinks: Vec<Arc<dyn DataSink>>,
 }
 
 impl Write {
-    pub fn new(input: Arc<dyn ActionPlan>, data_sink: Arc<dyn DataSink>) -> Arc<Self> {
-        Arc::new(Write { input, data_sink })
+    pub fn new(input: Arc<dyn ActionPlan>, data_sinks: Vec<Arc<dyn DataSink>>) -> Arc<Self> {
+        Arc::new(Write { input, data_sinks })
     }
 }
 
 impl ActionPlan for Write {
     fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let input = self.input.execute();
-        let errors = Box::new(input.flat_map(move |container| self.data_sink.write(container)));
+        let errors = Box::new(input.flat_map(move |container| {
+            self.data_sinks
+                .iter()
+                .flat_map(move |s| s.write(container.clone()))
+        }));
         self.commit_batch();
         errors
     }

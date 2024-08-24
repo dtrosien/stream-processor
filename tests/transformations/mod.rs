@@ -116,7 +116,7 @@ impl FlattenTestStruct {
             .collect::<Vec<_>>();
         let container = GenericBatchContainer::new(
             Arc::new(Batch::Uniform(UniformBatch::Bytes(data))),
-            Some("topicA".to_string()), // todo create another example where based on the type the topic is different
+            Some("Any".to_string()), // todo create another example where based on the type the topic is different
             HashMap::default(),
         ) as Arc<dyn BatchContainer>;
         container

@@ -22,7 +22,7 @@ pub trait Stream {
         encoder: Option<Arc<Encoder>>,
         transformations: Vec<Arc<dyn Transformation>>,
     ) -> Arc<dyn Stream>;
-    fn write(self: Arc<Self>, data_sink: Arc<dyn DataSink>) -> Arc<dyn Stream>;
+    fn write(self: Arc<Self>, data_sinks: Vec<Arc<dyn DataSink>>) -> Arc<dyn Stream>;
 
     /// Get the Action
     fn action_plan(self: Arc<Self>) -> Arc<dyn ActionPlan>;
@@ -55,9 +55,9 @@ impl Stream for StreamImpl {
         })
     }
 
-    fn write(self: Arc<Self>, data_sink: Arc<dyn DataSink>) -> Arc<dyn Stream> {
+    fn write(self: Arc<Self>, data_sinks: Vec<Arc<dyn DataSink>>) -> Arc<dyn Stream> {
         Arc::new(StreamImpl {
-            plan: Some(Write::new(self.plan.clone().expect("todo"), data_sink)),
+            plan: Some(Write::new(self.plan.clone().expect("todo"), data_sinks)),
         })
     }
 
@@ -107,7 +107,7 @@ mod test {
                 Some(AvroSREncoder::new(avro_encoder)),
                 vec![TestTransformation::new()],
             )
-            .write(Arc::new(KafkaProducer {}));
+            .write(vec![Arc::new(KafkaProducer {})]);
     }
 
     #[derive(Debug, Serialize, Deserialize, AvroSchema, Dummy)]

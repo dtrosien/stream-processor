@@ -66,22 +66,26 @@ impl ContainerBuilder {
         }
     }
 
-    pub fn set_kafka_topic(&mut self, topic_name: &str) {
+    pub fn set_kafka_topic(&mut self, topic_name: &str) -> &mut Self {
         self.metadata
             .insert("kafka.topic".to_string(), topic_name.to_string());
+        self
     }
 
-    pub fn set_storage_path(&mut self, topic_name: &str) {
+    pub fn set_storage_path(&mut self, topic_name: &str) -> &mut Self {
         self.metadata
             .insert("storage.path".to_string(), topic_name.to_string());
+        self
     }
 
-    pub fn set_meta(&mut self, key: &str, value: &str) {
+    pub fn set_meta(&mut self, key: &str, value: &str) -> &mut Self {
         self.metadata.insert(key.to_string(), value.to_string());
+        self
     }
 
-    pub fn set_batch_type(&mut self, batch_type_name: &str) {
-        self.batch_type_name = Some(batch_type_name.to_string())
+    pub fn set_batch_type(&mut self, batch_type_name: &str) -> &mut Self {
+        self.batch_type_name = Some(batch_type_name.to_string());
+        self
     }
 
     pub fn build(self) -> Arc<GenericBatchContainer> {
@@ -90,5 +94,23 @@ impl ContainerBuilder {
             batch_type_name: self.batch_type_name,
             metadata: self.metadata,
         })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::container::{Batch, ContainerBuilder};
+    use crate::type_definitions::MixedBatch;
+    use std::sync::Arc;
+
+    #[test]
+    fn build_container() {
+        let batch = Arc::new(Batch::Mixed(MixedBatch::Any(vec![])));
+
+        // let container = ContainerBuilder::new(batch)
+        //     .set_batch_type("Any")
+        //     .set_kafka_topic("SomeTopic")
+        //     .set_storage_path("some/path")
+        //     .build();
     }
 }

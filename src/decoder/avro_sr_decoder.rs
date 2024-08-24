@@ -50,6 +50,7 @@ impl Decoder for AvroSRDecoder {
                     std::iter::once(GenericBatchContainer::new(
                         Arc::new(Batch::Uniform(UniformBatch::AvroValue(v.clone()))),
                         Some(k.clone()),
+                        HashMap::default(),
                     ) as Arc<dyn BatchContainer>)
                 })
                 .collect();

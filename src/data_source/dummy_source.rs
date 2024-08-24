@@ -4,6 +4,7 @@ use crate::type_definitions::MixedBatch;
 use apache_avro::{to_avro_datum, to_value, AvroSchema};
 use fake::{Dummy, Faker};
 use serde::Serialize;
+use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::sync::Arc;
 
@@ -40,7 +41,8 @@ impl<T: Serialize + Dummy<Faker> + AvroSchema> DataSource for DummySource<T> {
             .collect::<Vec<_>>();
 
         let batch = Arc::new(Batch::Mixed(MixedBatch::Bytes(msg)));
-        let container: Arc<dyn BatchContainer> = GenericBatchContainer::new(batch, None);
+        let container: Arc<dyn BatchContainer> =
+            GenericBatchContainer::new(batch, None, HashMap::default());
         Box::new(vec![container].into_iter())
     }
 

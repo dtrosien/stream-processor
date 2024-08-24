@@ -4,6 +4,7 @@ use crate::type_definitions::MixedBatch;
 use rdkafka::consumer::{CommitMode, Consumer, StreamConsumer};
 use rdkafka::{ClientConfig, Message};
 use std::any::Any;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 pub struct KafkaConsumer {
@@ -38,7 +39,8 @@ impl DataSource for KafkaConsumer {
             .collect();
 
         let batch = Arc::new(Batch::Mixed(MixedBatch::Bytes(msg)));
-        let container: Arc<dyn BatchContainer> = GenericBatchContainer::new(batch, None);
+        let container: Arc<dyn BatchContainer> =
+            GenericBatchContainer::new(batch, None, HashMap::default());
         Box::new(vec![container].into_iter())
     }
 

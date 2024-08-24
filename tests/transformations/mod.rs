@@ -1,6 +1,7 @@
 use crate::custom_types::test_struct::{BinaryRecord, BinaryType, FlatA, FlatB, FlatC, TestStruct};
 use apache_avro::types::Value;
 use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
+use std::collections::HashMap;
 use std::iter;
 use std::sync::Arc;
 use stream_processor::container::{Batch, BatchContainer, GenericBatchContainer};
@@ -116,6 +117,7 @@ impl FlattenTestStruct {
         let container = GenericBatchContainer::new(
             Arc::new(Batch::Uniform(UniformBatch::Bytes(data))),
             Some("topicA".to_string()), // todo create another example where based on the type the topic is different
+            HashMap::default(),
         ) as Arc<dyn BatchContainer>;
         container
     }

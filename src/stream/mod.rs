@@ -135,6 +135,7 @@ mod test {
                 vec![GenericBatchContainer::new(
                     Arc::new(Batch::Uniform(UniformBatch::Bytes(vec![]))),
                     None,
+                    HashMap::default(),
                 ) as Arc<dyn BatchContainer>]
                 .into_iter(),
             )

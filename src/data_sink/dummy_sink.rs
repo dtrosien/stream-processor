@@ -20,11 +20,12 @@ impl DataSink for DummySink {
 
         if let Batch::Uniform(UniformBatch::Bytes(bytes_batch)) = batch.as_ref() {
             println!(
-                "writer got batch of type :{} with num containers: {}",
-                input.clone().get_type_name().unwrap(),
-                bytes_batch.len()
+                "writer got batch of type :{:?} with num items: {}, writing to Topic: {:?}",
+                input.clone().get_type_name(),
+                bytes_batch.len(),
+                input.clone().get_meta("kafka.topic")
             );
-            // todo enable again with a verbose flag or something
+            // todo enable again with a verbose flag or something and maybe add name attribute to sink, so it can be differentiated when multiple sinks are used
             // bytes_batch.iter().for_each(|item| {
             //     println!(
             //         "writer got container:{} with num bites: {}",

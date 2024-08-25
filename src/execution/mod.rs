@@ -39,31 +39,40 @@ impl ExecutionContext {
     pub fn dummy<T: Serialize + Dummy<Faker> + AvroSchema + 'static>(
         &self,
         batch_size: u64,
+        s_id: u32,
     ) -> Arc<StreamImpl> {
-        let ds: Arc<dyn DataSource> = DummySource::<T, T, T>::new(batch_size);
+        let ds: Arc<dyn DataSource> = DummySource::<T, T, T>::new(batch_size, s_id, s_id, s_id);
         Arc::new(StreamImpl {
             plan: Some(Scan::new(ds)),
         })
     }
 
-    pub fn dummy_2x<T1, T2>(&self, batch_size: u64) -> Arc<StreamImpl>
+    pub fn dummy_2x<T1, T2>(&self, batch_size: u64, s_id1: u32, s_id2: u32) -> Arc<StreamImpl>
     where
         T1: Serialize + Dummy<Faker> + AvroSchema + 'static,
         T2: Serialize + Dummy<Faker> + AvroSchema + 'static,
     {
-        let ds: Arc<dyn DataSource> = DummySource::<T1, T2, T2>::new(batch_size);
+        let ds: Arc<dyn DataSource> =
+            DummySource::<T1, T2, T2>::new(batch_size, s_id1, s_id2, s_id2);
         Arc::new(StreamImpl {
             plan: Some(Scan::new(ds)),
         })
     }
 
-    pub fn dummy_3x<T1, T2, T3>(&self, batch_size: u64) -> Arc<StreamImpl>
+    pub fn dummy_3x<T1, T2, T3>(
+        &self,
+        batch_size: u64,
+        s_id1: u32,
+        s_id2: u32,
+        s_id3: u32,
+    ) -> Arc<StreamImpl>
     where
         T1: Serialize + Dummy<Faker> + AvroSchema + 'static,
         T2: Serialize + Dummy<Faker> + AvroSchema + 'static,
         T3: Serialize + Dummy<Faker> + AvroSchema + 'static,
     {
-        let ds: Arc<dyn DataSource> = DummySource::<T1, T2, T2>::new(batch_size);
+        let ds: Arc<dyn DataSource> =
+            DummySource::<T1, T2, T2>::new(batch_size, s_id1, s_id2, s_id3);
         Arc::new(StreamImpl {
             plan: Some(Scan::new(ds)),
         })
@@ -74,10 +83,11 @@ impl ExecutionContext {
         let plan = if optimize {
             todo!()
         } else {
-            stream.action_plan()
+            stream.action_plan() // todo enable multithreading (rayon) based on partition of source (get_partition fn for source)
         };
         let errors = plan.execute().collect::<Vec<_>>();
         // todo collect and log infos of error batches
         info!("Num ErrorBatches: {}", errors.len())
+        // todo maybe return error and stats collection here ... better for testing
     }
 }

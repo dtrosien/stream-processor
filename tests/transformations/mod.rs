@@ -1,10 +1,11 @@
-use crate::custom_types::test_struct::{BinaryRecord, BinaryType, FlatA, FlatB, FlatC, TestStruct};
+use crate::custom_types::test_struct::{
+    AnotherTestStruct, BinaryRecord, BinaryType, FlatA, FlatB, FlatC, TestStruct,
+};
 use apache_avro::types::Value;
 use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
-use std::collections::HashMap;
 use std::iter;
 use std::sync::Arc;
-use stream_processor::container::{Batch, BatchContainer, GenericBatchContainer};
+use stream_processor::container::{Batch, BatchContainer, ContainerBuilder, GenericBatchContainer};
 use stream_processor::encoder::Encoder;
 use stream_processor::transformation::Transformation;
 use stream_processor::type_definitions::{CustomType, UniformBatch};
@@ -14,6 +15,7 @@ pub struct FlattenTestStruct {
     s_n_strategy_a: SubjectNameStrategy,
     s_n_strategy_b: SubjectNameStrategy,
     s_n_strategy_c: SubjectNameStrategy,
+    s_n_strategy_another_out: SubjectNameStrategy,
 }
 
 impl FlattenTestStruct {
@@ -33,10 +35,16 @@ impl FlattenTestStruct {
             "some.namespace.FlatC".to_string(),
         );
 
+        let s_n_strategy_another_out = SubjectNameStrategy::TopicRecordNameStrategy(
+            "topicB".to_string(),
+            "some.namespace.AnotherTestStruct".to_string(),
+        );
+
         Arc::new(FlattenTestStruct {
             s_n_strategy_a,
             s_n_strategy_b,
             s_n_strategy_c,
+            s_n_strategy_another_out,
         })
     }
 
@@ -114,11 +122,36 @@ impl FlattenTestStruct {
                 BinaryType::C => Self::create_c(&test_struct, r, encoder, &self.s_n_strategy_c),
             }) // todo use result in create_fn and then creat ErrorBatch in case of error
             .collect::<Vec<_>>();
-        let container = GenericBatchContainer::new(
-            Arc::new(Batch::Uniform(UniformBatch::Bytes(data))),
-            Some("Any".to_string()), // todo create another example where based on the type the topic is different
-            HashMap::default(),
-        ) as Arc<dyn BatchContainer>;
+        // container building could be in the create function to split by topic
+        let container = ContainerBuilder::new(Arc::new(Batch::Uniform(UniformBatch::Bytes(data))))
+            .with_kafka_topic("TopicA")
+            .with_batch_type("Any")
+            .build() as Arc<dyn BatchContainer>;
+        container
+    }
+
+    fn redact_source_from_another_test_struct(
+        &self,
+        encoder: &Arc<Encoder>,
+        value: &Arc<Value>,
+    ) -> Arc<dyn BatchContainer> {
+        let mut another_test_struct = apache_avro::from_value::<AnotherTestStruct>(value)
+            .expect("Failed to deserialize AnotherTestStruct");
+
+        another_test_struct.source = "REDACTED".to_string();
+
+        let data = encoder
+            .get_avro_rs_encoder()
+            .unwrap()
+            .encode(another_test_struct, &self.s_n_strategy_another_out)
+            .expect("Failed to encode data");
+
+        let container = ContainerBuilder::new(Arc::new(Batch::Uniform(UniformBatch::Bytes(vec![
+            Arc::new(data),
+        ]))))
+        .with_kafka_topic("TopicB")
+        .with_batch_type("AnotherTestStruct")
+        .build() as Arc<dyn BatchContainer>;
         container
     }
 
@@ -130,6 +163,7 @@ impl FlattenTestStruct {
     ) -> Arc<dyn BatchContainer> {
         match transform_type.get_type_id() {
             0 => self.flatten_test_struct(encoder, value),
+            1 => self.redact_source_from_another_test_struct(encoder, value),
             _ => panic!("no id match for custom data"),
         }
     }
@@ -152,7 +186,7 @@ impl Transformation for FlattenTestStruct {
         match batch.as_ref() {
             Batch::Uniform(UniformBatch::AvroValue(value_batch)) => {
                 let encoder = encoder.expect("no encoder found");
-                let result = value_batch
+                let result = value_batch // todo maybe not here iterating, because it is a uniform batch... and currently AnotherTestStructs-Batches will be split in single container
                     .into_iter()
                     .map(move |value| self.split_by_input_type(&transform_type, &encoder, &value))
                     .collect::<Vec<_>>();

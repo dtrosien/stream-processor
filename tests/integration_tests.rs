@@ -1,7 +1,8 @@
+use crate::custom_types::test_struct::AnotherTestStruct;
 use crate::mappers::MapperTestImpl;
 use crate::transformations::FlattenTestStruct;
 use apache_avro::AvroSchema;
-use custom_types::test_struct::{FlatA, TestStruct};
+use custom_types::test_struct::TestStruct;
 use mockito::Server;
 use schema_registry_converter::blocking::avro::AvroEncoder;
 use schema_registry_converter::blocking::schema_registry::SrSettings;
@@ -18,7 +19,7 @@ pub mod mappers;
 pub mod transformations;
 //
 
-// todo create (another test with different intput structs (dummysource can already handle it) and map to differetn topics in output (see trafotest impl))
+// todo clean up mock server responses (maybe in a init function)
 #[test]
 fn dummy_to_dummy_with_sr() {
     let mut server = Server::new();
@@ -46,9 +47,62 @@ fn dummy_to_dummy_with_sr() {
         .with_body(r#"{"subject":"FlatC-value","version":1,"id":5,"schema":"{\"type\":\"record\",\"name\":\"FlatC\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"value\",\"type\":{\"type\":\"array\",\"items\":\"int\"}}]}"}"#)
         .create();
 
-    println!("{:?}", TestStruct::get_schema().canonical_form());
+    let context = ExecutionContext::new(HashMap::default());
+    let sr_settings = SrSettings::new(server.url());
+    let decoder = AvroSRDecoder::new(sr_settings.clone());
+    let avro_encoder = AvroEncoder::new(sr_settings);
 
-    println!("FLAT_A: {:?}", FlatA::get_schema().canonical_form());
+    let stream = context
+        .dummy::<TestStruct>(5, 1)
+        .deserialize(decoder)
+        .transform(
+            Some(MapperTestImpl::new()),
+            Some(AvroSREncoder::new(avro_encoder)),
+            vec![FlattenTestStruct::new()],
+        )
+        .write(vec![Arc::new(DummySink {})]);
+
+    context.execute_once(stream, false);
+}
+
+#[test]
+fn dummy_to_dummy_with_sr_different_input_structs() {
+    let mut server = Server::new();
+    let _i1 = server.mock("GET", "/schemas/ids/1?deleted=true")
+        .with_status(200)
+        .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+        .with_body(r#"{"schema":"{\"type\":\"record\",\"name\":\"TestStruct\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"records_binaries\",\"type\":{\"type\":\"array\",\"items\":{\"name\":\"BinaryRecord\",\"type\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":\"long\"},{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"binary_type\",\"type\":{\"name\":\"BinaryType\",\"type\":\"enum\",\"symbols\":[\"A\",\"B\",\"C\"]}},{\"name\":\"value\",\"type\":{\"type\":\"array\",\"items\":\"int\"}}]}}}]}"}"#)
+        .create();
+
+    let _i2 = server.mock("GET", "/schemas/ids/2?deleted=true")
+        .with_status(200)
+        .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+        .with_body(r#"{"schema":"{\"type\":\"record\",\"name\":\"AnotherTestStruct\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"message\",\"type\":{\"type\":\"array\",\"items\":\"string\"}}]}"}"#)
+        .create();
+
+    let _a = server.mock("GET", "/subjects/topicA-some.namespace.FlatA/versions/latest")
+        .with_status(200)
+        .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+        .with_body(r#"{"subject":"FlatA-value","version":1,"id":3,"schema":"{\"type\":\"record\",\"name\":\"FlatA\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"value\",\"type\":{\"type\":\"array\",\"items\":\"int\"}}]}"}"#)
+        .create();
+
+    let _b = server.mock("GET", "/subjects/topicA-some.namespace.FlatB/versions/latest")
+        .with_status(200)
+        .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+        .with_body(r#"{"subject":"FlatB-value","version":1,"id":4,"schema":"{\"type\":\"record\",\"name\":\"FlatB\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"value\",\"type\":{\"type\":\"array\",\"items\":\"int\"}}]}"}"#)
+        .create();
+
+    let _c = server.mock("GET", "/subjects/topicA-some.namespace.FlatC/versions/latest")
+        .with_status(200)
+        .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+        .with_body(r#"{"subject":"FlatC-value","version":1,"id":5,"schema":"{\"type\":\"record\",\"name\":\"FlatC\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"value\",\"type\":{\"type\":\"array\",\"items\":\"int\"}}]}"}"#)
+        .create();
+
+    let _o2 = server.mock("GET", "/subjects/topicB-some.namespace.AnotherTestStruct/versions/latest")
+        .with_status(200)
+        .with_header("content-type", "application/vnd.schemaregistry.v1+json")
+        .with_body(r#"{"subject":"AnotherTestStruct-value","version":1,"id":6,"schema":"{\"type\":\"record\",\"name\":\"AnotherTestStruct\",\"namespace\":\"some.namespace\",\"fields\":[{\"name\":\"timestamp_ms\",\"type\":\"long\"},{\"name\":\"uuid\",\"type\":\"string\"},{\"name\":\"source\",\"type\":\"string\"},{\"name\":\"message\",\"type\":{\"type\":\"array\",\"items\":\"string\"}}]}"}"#)
+        .create();
 
     let context = ExecutionContext::new(HashMap::default());
     let sr_settings = SrSettings::new(server.url());
@@ -56,7 +110,7 @@ fn dummy_to_dummy_with_sr() {
     let avro_encoder = AvroEncoder::new(sr_settings);
 
     let stream = context
-        .dummy::<TestStruct>(5)
+        .dummy_2x::<TestStruct, AnotherTestStruct>(5, 1, 2)
         .deserialize(decoder)
         .transform(
             Some(MapperTestImpl::new()),

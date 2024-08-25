@@ -11,6 +11,14 @@ pub struct TestStruct {
     pub records_binaries: Vec<BinaryRecord>,
 }
 
+#[derive(Debug, AvroSchema, Serialize, Deserialize, Dummy)]
+pub struct AnotherTestStruct {
+    pub timestamp_ms: i64,
+    pub uuid: String, // avro does not support uuid as type
+    pub source: String,
+    pub message: Vec<String>,
+}
+
 #[derive(Debug, AvroSchema, Serialize, Deserialize)]
 pub struct BinaryRecord {
     pub id: i64,
@@ -32,7 +40,7 @@ impl Dummy<Faker> for TestStruct {
             timestamp_ms: Utc::now().timestamp_millis(),
             uuid: Faker.fake(),
             source: Faker.fake_with_rng(rng),
-            records_binaries: fake::vec![BinaryRecord; 1..400],
+            records_binaries: fake::vec![BinaryRecord; 1..40],
         }
     }
 }
@@ -44,7 +52,7 @@ impl Dummy<Faker> for BinaryRecord {
             name: Faker.fake_with_rng(rng),
             timestamp_ms: Utc::now().timestamp_millis(),
             binary_type: Faker.fake_with_rng(rng),
-            value: fake::vec![u8; 1000..10000],
+            value: fake::vec![u8; 100..1000],
         }
     }
 }

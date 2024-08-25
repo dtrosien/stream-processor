@@ -51,7 +51,7 @@ impl BatchContainer for GenericBatchContainer {
     }
 }
 
-struct ContainerBuilder {
+pub struct ContainerBuilder {
     batch: Arc<Batch>,
     batch_type_name: Option<String>, // todo maybe include in map
     metadata: HashMap<String, String>,

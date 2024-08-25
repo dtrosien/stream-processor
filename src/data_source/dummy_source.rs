@@ -21,6 +21,9 @@ where
     pub dummy_data_2: PhantomData<T2>,
     pub dummy_data_3: PhantomData<T3>,
     pub batch_size: u64,
+    pub s_id1: u32,
+    pub s_id2: u32,
+    pub s_id3: u32,
 }
 
 impl<T1, T2, T3> DummySource<T1, T2, T3>
@@ -29,19 +32,25 @@ where
     T2: Serialize + Dummy<Faker> + AvroSchema,
     T3: Serialize + Dummy<Faker> + AvroSchema,
 {
-    pub fn new(batch_size: u64) -> Arc<Self> {
+    pub fn new(batch_size: u64, s_id1: u32, s_id2: u32, s_id3: u32) -> Arc<Self> {
         Arc::new(DummySource::<T1, T2, T3> {
             dummy_data_1: PhantomData,
             dummy_data_2: PhantomData,
             dummy_data_3: PhantomData,
-
+            s_id1,
+            s_id2,
+            s_id3,
             batch_size,
         })
     }
 
-    fn create_msgs<T: Serialize + Dummy<Faker> + AvroSchema>(&self, num: u64) -> Vec<Arc<Vec<u8>>> {
+    fn create_msgs<T: Serialize + Dummy<Faker> + AvroSchema>(
+        &self,
+        num: u64,
+        schema_id: u32,
+    ) -> Vec<Arc<Vec<u8>>> {
         let magic_byte = 0u8;
-        let id_bytes = 1_u32.to_be_bytes();
+        let id_bytes = schema_id.to_be_bytes();
         let schema = T::get_schema();
         (0..num)
             .into_iter()
@@ -71,9 +80,9 @@ where
         let split2 = rng.gen_range(0..=remaining);
         let split3 = remaining - split2;
 
-        let msg1 = self.create_msgs::<T1>(split1);
-        let msg2 = self.create_msgs::<T2>(split2);
-        let msg3 = self.create_msgs::<T3>(split3);
+        let msg1 = self.create_msgs::<T1>(split1, self.s_id1);
+        let msg2 = self.create_msgs::<T2>(split2, self.s_id2);
+        let msg3 = self.create_msgs::<T3>(split3, self.s_id3);
 
         let msg = msg1
             .into_iter()

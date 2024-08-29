@@ -49,4 +49,12 @@ impl DataSource for KafkaConsumer {
             .commit_consumer_state(CommitMode::Sync)
             .unwrap()
     }
+
+    fn get_partitions(&self) -> Vec<String> {
+        todo!()
+    }
+
+    fn recreate_partitioned(&self, partition: String) -> Arc<dyn DataSource> {
+        todo!()
+    }
 }

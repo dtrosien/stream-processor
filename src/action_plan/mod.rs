@@ -15,4 +15,8 @@ pub trait ActionPlan {
 
     /// used to be able to commit when necessary
     fn commit_batch(&self);
+
+    fn get_partitions(&self) -> Vec<String>;
+
+    fn as_any(&self) -> &dyn Any;
 }

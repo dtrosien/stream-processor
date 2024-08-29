@@ -3,13 +3,14 @@ use crate::container::BatchContainer;
 use crate::encoder::Encoder;
 use crate::transformation::Transformation;
 use crate::type_mapper::TypeMapper;
+use std::any::Any;
 use std::sync::Arc;
 
 pub struct Transform {
-    input: Arc<dyn ActionPlan>,
-    mapper: Option<Arc<dyn TypeMapper>>,
-    encoder: Option<Arc<Encoder>>,
-    transformations: Vec<Arc<dyn Transformation>>,
+    pub input: Arc<dyn ActionPlan>,
+    pub mapper: Option<Arc<dyn TypeMapper>>,
+    pub encoder: Option<Arc<Encoder>>,
+    pub transformations: Vec<Arc<dyn Transformation>>,
 }
 
 impl Transform {
@@ -44,5 +45,11 @@ impl ActionPlan for Transform {
 
     fn commit_batch(&self) {
         self.child().unwrap().commit_batch()
+    }
+    fn get_partitions(&self) -> Vec<String> {
+        self.child().unwrap().get_partitions()
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }

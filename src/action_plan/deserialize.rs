@@ -1,11 +1,12 @@
 use crate::action_plan::ActionPlan;
 use crate::container::BatchContainer;
 use crate::decoder::Decoder;
+use std::any::Any;
 use std::sync::Arc;
 
 pub struct Deserialize {
-    input: Arc<dyn ActionPlan>,
-    decoder: Arc<dyn Decoder>,
+    pub input: Arc<dyn ActionPlan>,
+    pub decoder: Arc<dyn Decoder>,
 }
 
 impl Deserialize {
@@ -25,5 +26,13 @@ impl ActionPlan for Deserialize {
 
     fn commit_batch(&self) {
         self.child().unwrap().commit_batch()
+    }
+
+    fn get_partitions(&self) -> Vec<String> {
+        self.child().unwrap().get_partitions()
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }

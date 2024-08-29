@@ -13,9 +13,9 @@ use std::sync::Arc;
 /// if using only two different structs, the probability is not equally distributed
 pub struct DummySource<T1, T2, T3>
 where
-    T1: Serialize + Dummy<Faker> + AvroSchema,
-    T2: Serialize + Dummy<Faker> + AvroSchema,
-    T3: Serialize + Dummy<Faker> + AvroSchema,
+    T1: Serialize + Dummy<Faker> + AvroSchema + 'static,
+    T2: Serialize + Dummy<Faker> + AvroSchema + 'static,
+    T3: Serialize + Dummy<Faker> + AvroSchema + 'static,
 {
     pub dummy_data_1: PhantomData<T1>,
     pub dummy_data_2: PhantomData<T2>,
@@ -28,9 +28,9 @@ where
 
 impl<T1, T2, T3> DummySource<T1, T2, T3>
 where
-    T1: Serialize + Dummy<Faker> + AvroSchema,
-    T2: Serialize + Dummy<Faker> + AvroSchema,
-    T3: Serialize + Dummy<Faker> + AvroSchema,
+    T1: Serialize + Dummy<Faker> + AvroSchema + 'static,
+    T2: Serialize + Dummy<Faker> + AvroSchema + 'static,
+    T3: Serialize + Dummy<Faker> + AvroSchema + 'static,
 {
     pub fn new(batch_size: u64, s_id1: u32, s_id2: u32, s_id3: u32) -> Arc<Self> {
         Arc::new(DummySource::<T1, T2, T3> {
@@ -69,9 +69,9 @@ where
 
 impl<T1, T2, T3> DataSource for DummySource<T1, T2, T3>
 where
-    T1: Serialize + Dummy<Faker> + AvroSchema,
-    T2: Serialize + Dummy<Faker> + AvroSchema,
-    T3: Serialize + Dummy<Faker> + AvroSchema,
+    T1: Serialize + Dummy<Faker> + AvroSchema + 'static,
+    T2: Serialize + Dummy<Faker> + AvroSchema + 'static,
+    T3: Serialize + Dummy<Faker> + AvroSchema + 'static,
 {
     fn read_batch(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let mut rng = rand::thread_rng();
@@ -97,4 +97,20 @@ where
     }
 
     fn commit(&self) {}
+
+    fn get_partitions(&self) -> Vec<String> {
+        vec!["1".into(), "2".into()]
+    }
+
+    fn recreate_partitioned(&self, partition: String) -> Arc<dyn DataSource> {
+        Arc::new(DummySource::<T1, T2, T3> {
+            dummy_data_1: PhantomData,
+            dummy_data_2: PhantomData,
+            dummy_data_3: PhantomData,
+            s_id1: self.s_id1,
+            s_id2: self.s_id2,
+            s_id3: self.s_id3,
+            batch_size: self.batch_size,
+        })
+    }
 }

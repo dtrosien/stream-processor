@@ -1,11 +1,12 @@
 use crate::action_plan::ActionPlan;
 use crate::container::BatchContainer;
 use crate::data_sink::DataSink;
+use std::any::Any;
 use std::sync::Arc;
 
 pub struct Write {
-    input: Arc<dyn ActionPlan>,
-    data_sinks: Vec<Arc<dyn DataSink>>,
+    pub input: Arc<dyn ActionPlan>,
+    pub data_sinks: Vec<Arc<dyn DataSink>>,
 }
 
 impl Write {
@@ -32,5 +33,11 @@ impl ActionPlan for Write {
 
     fn commit_batch(&self) {
         self.child().unwrap().commit_batch()
+    }
+    fn get_partitions(&self) -> Vec<String> {
+        self.child().unwrap().get_partitions()
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }

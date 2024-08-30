@@ -12,29 +12,29 @@ use std::any::Any;
 use std::ops::Deref;
 use std::sync::Arc;
 
-pub trait Stream {
+pub trait DataStream {
     /// Apply Serialization
-    fn deserialize(self: Arc<Self>, decoder: Arc<dyn Decoder>) -> Arc<dyn Stream>;
+    fn deserialize(self: Arc<Self>, decoder: Arc<dyn Decoder>) -> Arc<dyn DataStream>;
 
     fn transform(
         self: Arc<Self>,
         mapper: Option<Arc<dyn TypeMapper>>,
         encoder: Option<Arc<Encoder>>,
         transformations: Vec<Arc<dyn Transformation>>,
-    ) -> Arc<dyn Stream>;
-    fn write(self: Arc<Self>, data_sinks: Vec<Arc<dyn DataSink>>) -> Arc<dyn Stream>;
+    ) -> Arc<dyn DataStream>;
+    fn write(self: Arc<Self>, data_sinks: Vec<Arc<dyn DataSink>>) -> Arc<dyn DataStream>;
 
     /// Get the Action
     fn action_plan(self: Arc<Self>) -> Arc<dyn ActionPlan>;
 }
 
-pub struct StreamImpl {
+pub struct DataStreamImpl {
     pub plan: Option<Arc<dyn ActionPlan>>,
 }
 
-impl Stream for StreamImpl {
-    fn deserialize(self: Arc<Self>, decoder: Arc<dyn Decoder>) -> Arc<dyn Stream> {
-        Arc::new(StreamImpl {
+impl DataStream for DataStreamImpl {
+    fn deserialize(self: Arc<Self>, decoder: Arc<dyn Decoder>) -> Arc<dyn DataStream> {
+        Arc::new(DataStreamImpl {
             plan: Some(Deserialize::new(self.plan.clone().expect("todo"), decoder)),
         })
     }
@@ -44,8 +44,8 @@ impl Stream for StreamImpl {
         mapper: Option<Arc<dyn TypeMapper>>,
         encoder: Option<Arc<Encoder>>,
         transformations: Vec<Arc<dyn Transformation>>,
-    ) -> Arc<dyn Stream> {
-        Arc::new(StreamImpl {
+    ) -> Arc<dyn DataStream> {
+        Arc::new(DataStreamImpl {
             plan: Some(Transform::new(
                 self.plan.clone().expect("todo"),
                 mapper,
@@ -55,8 +55,8 @@ impl Stream for StreamImpl {
         })
     }
 
-    fn write(self: Arc<Self>, data_sinks: Vec<Arc<dyn DataSink>>) -> Arc<dyn Stream> {
-        Arc::new(StreamImpl {
+    fn write(self: Arc<Self>, data_sinks: Vec<Arc<dyn DataSink>>) -> Arc<dyn DataStream> {
+        Arc::new(DataStreamImpl {
             plan: Some(Write::new(self.plan.clone().expect("todo"), data_sinks)),
         })
     }
@@ -70,11 +70,11 @@ impl Stream for StreamImpl {
 mod test {
     use crate::container::{Batch, BatchContainer, GenericBatchContainer};
     use crate::data_sink::kafka_producer::KafkaProducer;
+    use crate::data_stream::DataStream;
     use crate::decoder::avro_sr_decoder::AvroSRDecoder;
     use crate::encoder::avro_sr_encoder::AvroSREncoder;
     use crate::encoder::Encoder;
     use crate::execution::ExecutionContext;
-    use crate::stream::Stream;
     use crate::transformation::Transformation;
     use crate::type_definitions::UniformBatch;
     use crate::type_mapper::TypeMapper;

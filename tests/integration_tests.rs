@@ -9,10 +9,10 @@ use schema_registry_converter::blocking::schema_registry::SrSettings;
 use std::collections::HashMap;
 use std::sync::Arc;
 use stream_processor::data_sink::dummy_sink::DummySink;
+use stream_processor::data_stream::DataStream;
 use stream_processor::decoder::avro_sr_decoder::AvroSRDecoder;
 use stream_processor::encoder::avro_sr_encoder::AvroSREncoder;
 use stream_processor::execution::ExecutionContext;
-use stream_processor::stream::Stream;
 
 pub mod custom_types;
 pub mod mappers;

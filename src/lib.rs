@@ -12,8 +12,8 @@ pub mod encoder;
 pub mod telemetry;
 pub mod transformation;
 
+pub mod data_stream;
 pub mod execution;
 pub mod optimizer;
-pub mod stream;
 pub mod type_definitions;
 pub mod type_mapper;

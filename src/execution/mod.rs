@@ -3,8 +3,8 @@ use crate::container::BatchContainer;
 use crate::data_source::dummy_source::{DummySource, TestDummy};
 use crate::data_source::kafka_consumer::KafkaConsumer;
 use crate::data_source::DataSource;
+use crate::data_stream::{DataStream, DataStreamImpl};
 use crate::optimizer::Optimizer;
-use crate::stream::{Stream, StreamImpl};
 use apache_avro::AvroSchema;
 use fake::{Dummy, Faker};
 use log::info;
@@ -17,7 +17,7 @@ use std::sync::Arc;
 pub struct ExecutionContext {
     pub settings: HashMap<String, String>,
     batch_size: usize,
-    streams: HashMap<Partition, Arc<dyn Stream>>,
+    streams: HashMap<Partition, Arc<dyn DataStream>>,
 }
 
 struct Partition(String);
@@ -35,28 +35,28 @@ impl ExecutionContext {
         }
     }
 
-    pub fn kafka(&self, topic: String, client_config: ClientConfig) -> Arc<StreamImpl> {
+    pub fn kafka(&self, topic: String, client_config: ClientConfig) -> Arc<DataStreamImpl> {
         let ds: Arc<dyn DataSource> = KafkaConsumer::new(client_config);
-        Arc::new(StreamImpl {
+        Arc::new(DataStreamImpl {
             plan: Some(Scan::new(ds)),
         })
     }
 
-    pub fn dummy<T: TestDummy>(&self, batch_size: u64, s_id: u32) -> Arc<StreamImpl> {
+    pub fn dummy<T: TestDummy>(&self, batch_size: u64, s_id: u32) -> Arc<DataStreamImpl> {
         let ds: Arc<dyn DataSource> = DummySource::<T, T, T>::new(batch_size, s_id, s_id, s_id);
-        Arc::new(StreamImpl {
+        Arc::new(DataStreamImpl {
             plan: Some(Scan::new(ds)),
         })
     }
 
-    pub fn dummy_2x<T1, T2>(&self, batch_size: u64, s_id1: u32, s_id2: u32) -> Arc<StreamImpl>
+    pub fn dummy_2x<T1, T2>(&self, batch_size: u64, s_id1: u32, s_id2: u32) -> Arc<DataStreamImpl>
     where
         T1: TestDummy,
         T2: TestDummy,
     {
         let ds: Arc<dyn DataSource> =
             DummySource::<T1, T2, T2>::new(batch_size, s_id1, s_id2, s_id2);
-        Arc::new(StreamImpl {
+        Arc::new(DataStreamImpl {
             plan: Some(Scan::new(ds)),
         })
     }
@@ -67,7 +67,7 @@ impl ExecutionContext {
         s_id1: u32,
         s_id2: u32,
         s_id3: u32,
-    ) -> Arc<StreamImpl>
+    ) -> Arc<DataStreamImpl>
     where
         T1: TestDummy,
         T2: TestDummy,
@@ -75,13 +75,13 @@ impl ExecutionContext {
     {
         let ds: Arc<dyn DataSource> =
             DummySource::<T1, T2, T2>::new(batch_size, s_id1, s_id2, s_id3);
-        Arc::new(StreamImpl {
+        Arc::new(DataStreamImpl {
             plan: Some(Scan::new(ds)),
         })
     }
 
-    /// Execute the logical plan represented by a DataFrame
-    pub fn execute_once(&self, stream: Arc<dyn Stream>, optimize: bool) {
+    /// Execute the logical plan represented by a DataStream
+    pub fn execute_once(&self, stream: Arc<dyn DataStream>, optimize: bool) {
         // get
         let optimize = true;
         let plan = if optimize {
@@ -103,4 +103,6 @@ impl ExecutionContext {
 
         // todo maybe return error and stats collection here ... better for testing
     }
+
+    // todo add continuous execution etc
 }

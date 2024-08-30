@@ -8,7 +8,7 @@ pub mod scan;
 pub mod transform;
 pub mod write;
 
-pub trait ActionPlan {
+pub trait ActionPlan: Send + Sync {
     fn execute(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_>;
 
     fn child(&self) -> Option<Arc<dyn ActionPlan>>;

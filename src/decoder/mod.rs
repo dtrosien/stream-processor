@@ -3,7 +3,7 @@ pub mod avro_sr_decoder;
 use crate::container::BatchContainer;
 use std::sync::Arc;
 
-pub trait Decoder {
+pub trait Decoder: Send + Sync {
     fn decode(
         &self,
         msg: Arc<dyn BatchContainer>,

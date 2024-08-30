@@ -81,6 +81,7 @@ mod test {
     use apache_avro::AvroSchema;
     use mockito::Server;
 
+    use crate::data_source::dummy_source::TestDummy;
     use fake::Dummy;
     use schema_registry_converter::blocking::avro::AvroEncoder;
     use schema_registry_converter::blocking::schema_registry::SrSettings;
@@ -116,6 +117,7 @@ mod test {
         pub message: String,
     }
 
+    impl TestDummy for StringMessage {}
     struct TestTransformation {}
 
     impl TestTransformation {

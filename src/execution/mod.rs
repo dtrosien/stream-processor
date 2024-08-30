@@ -1,6 +1,6 @@
 use crate::action_plan::scan::Scan;
 use crate::container::BatchContainer;
-use crate::data_source::dummy_source::DummySource;
+use crate::data_source::dummy_source::{DummySource, TestDummy};
 use crate::data_source::kafka_consumer::KafkaConsumer;
 use crate::data_source::DataSource;
 use crate::optimizer::Optimizer;
@@ -42,11 +42,7 @@ impl ExecutionContext {
         })
     }
 
-    pub fn dummy<T: Serialize + Dummy<Faker> + AvroSchema + 'static>(
-        &self,
-        batch_size: u64,
-        s_id: u32,
-    ) -> Arc<StreamImpl> {
+    pub fn dummy<T: TestDummy>(&self, batch_size: u64, s_id: u32) -> Arc<StreamImpl> {
         let ds: Arc<dyn DataSource> = DummySource::<T, T, T>::new(batch_size, s_id, s_id, s_id);
         Arc::new(StreamImpl {
             plan: Some(Scan::new(ds)),
@@ -55,8 +51,8 @@ impl ExecutionContext {
 
     pub fn dummy_2x<T1, T2>(&self, batch_size: u64, s_id1: u32, s_id2: u32) -> Arc<StreamImpl>
     where
-        T1: Serialize + Dummy<Faker> + AvroSchema + 'static,
-        T2: Serialize + Dummy<Faker> + AvroSchema + 'static,
+        T1: TestDummy,
+        T2: TestDummy,
     {
         let ds: Arc<dyn DataSource> =
             DummySource::<T1, T2, T2>::new(batch_size, s_id1, s_id2, s_id2);
@@ -73,9 +69,9 @@ impl ExecutionContext {
         s_id3: u32,
     ) -> Arc<StreamImpl>
     where
-        T1: Serialize + Dummy<Faker> + AvroSchema + 'static,
-        T2: Serialize + Dummy<Faker> + AvroSchema + 'static,
-        T3: Serialize + Dummy<Faker> + AvroSchema + 'static,
+        T1: TestDummy,
+        T2: TestDummy,
+        T3: TestDummy,
     {
         let ds: Arc<dyn DataSource> =
             DummySource::<T1, T2, T2>::new(batch_size, s_id1, s_id2, s_id3);
@@ -89,7 +85,7 @@ impl ExecutionContext {
         // get
         let optimize = true;
         let plan = if optimize {
-            let plan = stream.action_plan(); // todo enable multithreading (rayon) based on partition of source (get_partition fn for source)
+            let plan = stream.action_plan();
             let optimized_plan = Optimizer::optimize(plan);
             Optimizer::split_by_partitions(optimized_plan)
         } else {
@@ -97,9 +93,10 @@ impl ExecutionContext {
         };
 
         let errors = plan
-            .iter()
-            .flat_map(|plan| plan.execute())
+            .par_iter()
+            .flat_map(|plan| plan.execute().collect::<Vec<_>>().into_iter().par_bridge())
             .collect::<Vec<_>>();
+
         info!("Num ErrorBatches: {}", errors.len())
 
         // todo collect and log infos of error batches

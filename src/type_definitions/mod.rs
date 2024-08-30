@@ -9,18 +9,18 @@ pub enum UniformBatch {
     Bytes(Vec<Arc<Vec<u8>>>),
     RecordBatch(RecordBatch),
     AvroValue(Vec<Arc<Value>>),
-    Custom(Vec<Arc<dyn Any>>),
+    Custom(Vec<Arc<dyn Any + Send + Sync>>),
 }
 
 #[derive(Clone, Debug)]
 pub enum MixedBatch {
     Bytes(Vec<Arc<Vec<u8>>>),
-    Any(Vec<Arc<dyn Any>>),
+    Any(Vec<Arc<dyn Any + Send + Sync>>),
 }
 
 #[derive(Clone, Debug)]
 pub enum ErrorBatch {
-    Any(Vec<Arc<dyn Any>>),
+    Any(Vec<Arc<dyn Any + Send + Sync>>),
 }
 
 pub trait CustomType: Debug + Any {

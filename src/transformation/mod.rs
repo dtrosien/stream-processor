@@ -3,7 +3,7 @@ use crate::encoder::Encoder;
 use crate::type_mapper::TypeMapper;
 use std::sync::Arc;
 
-pub trait Transformation {
+pub trait Transformation: Send + Sync {
     fn execute(
         &self,
         input: Arc<dyn BatchContainer>,

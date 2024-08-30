@@ -2,7 +2,7 @@ use crate::type_definitions::{ErrorBatch, MixedBatch, UniformBatch};
 use std::collections::HashMap;
 use std::sync::Arc;
 
-pub trait BatchContainer {
+pub trait BatchContainer: Send + Sync {
     fn get_batch(self: Arc<Self>) -> Arc<Batch>;
     fn get_type_name(self: Arc<Self>) -> Option<String>;
 

@@ -4,7 +4,7 @@ pub mod kafka_producer;
 use crate::container::BatchContainer;
 use std::sync::Arc;
 
-pub trait DataSink {
+pub trait DataSink: Send + Sync {
     fn write(
         &self,
         input: Arc<dyn BatchContainer>,

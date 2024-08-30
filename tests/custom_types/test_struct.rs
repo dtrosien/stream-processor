@@ -2,6 +2,7 @@ use apache_avro::AvroSchema;
 use chrono::Utc;
 use fake::{Dummy, Fake, Faker};
 use serde::{Deserialize, Serialize};
+use stream_processor::data_source::dummy_source::TestDummy;
 
 #[derive(Debug, AvroSchema, Serialize, Deserialize)]
 pub struct TestStruct {
@@ -34,6 +35,9 @@ pub enum BinaryType {
     C,
 }
 
+impl TestDummy for TestStruct {}
+impl TestDummy for AnotherTestStruct {}
+
 impl Dummy<Faker> for TestStruct {
     fn dummy_with_rng<R: rand::Rng + ?Sized>(_: &Faker, rng: &mut R) -> Self {
         Self {
@@ -44,7 +48,6 @@ impl Dummy<Faker> for TestStruct {
         }
     }
 }
-
 impl Dummy<Faker> for BinaryRecord {
     fn dummy_with_rng<R: rand::Rng + ?Sized>(_: &Faker, rng: &mut R) -> Self {
         Self {
@@ -56,6 +59,7 @@ impl Dummy<Faker> for BinaryRecord {
         }
     }
 }
+
 //////////////////////////////////////////////////////////////////////
 
 #[derive(Debug, AvroSchema, Serialize)]

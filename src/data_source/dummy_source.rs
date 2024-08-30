@@ -9,13 +9,15 @@ use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::sync::Arc;
 
+pub trait TestDummy: Serialize + Dummy<Faker> + AvroSchema + 'static + Send + Sync {} // todo currently all test structs need to impl this manually... maybe create derive makro or look if there is another way to make this more elegant
+
 /// creates up to three different input structs
 /// if using only two different structs, the probability is not equally distributed
 pub struct DummySource<T1, T2, T3>
 where
-    T1: Serialize + Dummy<Faker> + AvroSchema + 'static,
-    T2: Serialize + Dummy<Faker> + AvroSchema + 'static,
-    T3: Serialize + Dummy<Faker> + AvroSchema + 'static,
+    T1: TestDummy,
+    T2: TestDummy,
+    T3: TestDummy,
 {
     pub dummy_data_1: PhantomData<T1>,
     pub dummy_data_2: PhantomData<T2>,
@@ -28,9 +30,9 @@ where
 
 impl<T1, T2, T3> DummySource<T1, T2, T3>
 where
-    T1: Serialize + Dummy<Faker> + AvroSchema + 'static,
-    T2: Serialize + Dummy<Faker> + AvroSchema + 'static,
-    T3: Serialize + Dummy<Faker> + AvroSchema + 'static,
+    T1: TestDummy,
+    T2: TestDummy,
+    T3: TestDummy,
 {
     pub fn new(batch_size: u64, s_id1: u32, s_id2: u32, s_id3: u32) -> Arc<Self> {
         Arc::new(DummySource::<T1, T2, T3> {
@@ -69,9 +71,9 @@ where
 
 impl<T1, T2, T3> DataSource for DummySource<T1, T2, T3>
 where
-    T1: Serialize + Dummy<Faker> + AvroSchema + 'static,
-    T2: Serialize + Dummy<Faker> + AvroSchema + 'static,
-    T3: Serialize + Dummy<Faker> + AvroSchema + 'static,
+    T1: TestDummy,
+    T2: TestDummy,
+    T3: TestDummy,
 {
     fn read_batch(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let mut rng = rand::thread_rng();
@@ -99,7 +101,14 @@ where
     fn commit(&self) {}
 
     fn get_partitions(&self) -> Vec<String> {
-        vec!["1".into(), "2".into()]
+        vec![
+            "1".into(),
+            "2".into(),
+            "3".into(), // todo implement partitions properly
+            "4".into(),
+            "5".into(),
+            "6".into(),
+        ]
     }
 
     fn recreate_partitioned(&self, partition: String) -> Arc<dyn DataSource> {

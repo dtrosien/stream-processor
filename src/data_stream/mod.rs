@@ -101,7 +101,7 @@ mod test {
         let avro_encoder = AvroEncoder::new(sr_settings);
 
         let stream = context
-            .dummy::<StringMessage>(10, 1)
+            .dummy::<StringMessage>(10, 1, 1)
             .deserialize(decoder)
             .transform(
                 None,

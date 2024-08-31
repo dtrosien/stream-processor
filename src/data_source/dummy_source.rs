@@ -5,6 +5,7 @@ use apache_avro::{to_avro_datum, to_value, AvroSchema};
 use fake::{Dummy, Faker};
 use rand::Rng;
 use serde::Serialize;
+use std::cmp::max;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::sync::Arc;
@@ -23,6 +24,7 @@ where
     pub dummy_data_2: PhantomData<T2>,
     pub dummy_data_3: PhantomData<T3>,
     pub batch_size: u64,
+    pub num_partitions: u64,
     pub s_id1: u32,
     pub s_id2: u32,
     pub s_id3: u32,
@@ -34,7 +36,13 @@ where
     T2: TestDummy,
     T3: TestDummy,
 {
-    pub fn new(batch_size: u64, s_id1: u32, s_id2: u32, s_id3: u32) -> Arc<Self> {
+    pub fn new(
+        batch_size: u64,
+        num_partitions: u64,
+        s_id1: u32,
+        s_id2: u32,
+        s_id3: u32,
+    ) -> Arc<Self> {
         Arc::new(DummySource::<T1, T2, T3> {
             dummy_data_1: PhantomData,
             dummy_data_2: PhantomData,
@@ -43,6 +51,7 @@ where
             s_id2,
             s_id3,
             batch_size,
+            num_partitions,
         })
     }
 
@@ -77,8 +86,9 @@ where
 {
     fn read_batch(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let mut rng = rand::thread_rng();
-        let split1 = rng.gen_range(0..self.batch_size);
-        let remaining = self.batch_size - split1;
+        let partition_batch_size = max(1, self.batch_size / self.num_partitions);
+        let split1 = rng.gen_range(0..partition_batch_size);
+        let remaining = partition_batch_size - split1;
         let split2 = rng.gen_range(0..=remaining);
         let split3 = remaining - split2;
 
@@ -101,14 +111,10 @@ where
     fn commit(&self) {}
 
     fn get_partitions(&self) -> Vec<String> {
-        vec![
-            "1".into(),
-            "2".into(),
-            "3".into(), // todo implement partitions properly
-            "4".into(),
-            "5".into(),
-            "6".into(),
-        ]
+        (0..self.num_partitions)
+            .into_iter()
+            .map(|i| i.to_string())
+            .collect::<Vec<_>>()
     }
 
     fn recreate_partitioned(&self, partition: String) -> Arc<dyn DataSource> {
@@ -120,6 +126,7 @@ where
             s_id2: self.s_id2,
             s_id3: self.s_id3,
             batch_size: self.batch_size,
+            num_partitions: self.num_partitions, // not set to 1 here, to be able to split the batch size properly
         })
     }
 }

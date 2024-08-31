@@ -42,20 +42,32 @@ impl ExecutionContext {
         })
     }
 
-    pub fn dummy<T: TestDummy>(&self, batch_size: u64, s_id: u32) -> Arc<DataStreamImpl> {
-        let ds: Arc<dyn DataSource> = DummySource::<T, T, T>::new(batch_size, s_id, s_id, s_id);
+    pub fn dummy<T: TestDummy>(
+        &self,
+        batch_size: u64,
+        num_partitions: u64,
+        s_id: u32,
+    ) -> Arc<DataStreamImpl> {
+        let ds: Arc<dyn DataSource> =
+            DummySource::<T, T, T>::new(batch_size, num_partitions, s_id, s_id, s_id);
         Arc::new(DataStreamImpl {
             plan: Some(Scan::new(ds)),
         })
     }
 
-    pub fn dummy_2x<T1, T2>(&self, batch_size: u64, s_id1: u32, s_id2: u32) -> Arc<DataStreamImpl>
+    pub fn dummy_2x<T1, T2>(
+        &self,
+        batch_size: u64,
+        num_partitions: u64,
+        s_id1: u32,
+        s_id2: u32,
+    ) -> Arc<DataStreamImpl>
     where
         T1: TestDummy,
         T2: TestDummy,
     {
         let ds: Arc<dyn DataSource> =
-            DummySource::<T1, T2, T2>::new(batch_size, s_id1, s_id2, s_id2);
+            DummySource::<T1, T2, T2>::new(batch_size, num_partitions, s_id1, s_id2, s_id2);
         Arc::new(DataStreamImpl {
             plan: Some(Scan::new(ds)),
         })
@@ -64,6 +76,7 @@ impl ExecutionContext {
     pub fn dummy_3x<T1, T2, T3>(
         &self,
         batch_size: u64,
+        num_partitions: u64,
         s_id1: u32,
         s_id2: u32,
         s_id3: u32,
@@ -74,7 +87,7 @@ impl ExecutionContext {
         T3: TestDummy,
     {
         let ds: Arc<dyn DataSource> =
-            DummySource::<T1, T2, T2>::new(batch_size, s_id1, s_id2, s_id3);
+            DummySource::<T1, T2, T2>::new(batch_size, num_partitions, s_id1, s_id2, s_id3);
         Arc::new(DataStreamImpl {
             plan: Some(Scan::new(ds)),
         })

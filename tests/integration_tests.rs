@@ -53,7 +53,7 @@ fn dummy_to_dummy_with_sr() {
     let avro_encoder = AvroEncoder::new(sr_settings);
 
     let stream = context
-        .dummy::<TestStruct>(5, 1)
+        .dummy::<TestStruct>(4, 2, 1)
         .deserialize(decoder)
         .transform(
             Some(MapperTestImpl::new()),
@@ -66,7 +66,7 @@ fn dummy_to_dummy_with_sr() {
 }
 
 #[test]
-fn dummy_to_dummy_with_sr_different_input_structs() {
+fn different_input_structs_with_sr() {
     let mut server = Server::new();
     let _i1 = server.mock("GET", "/schemas/ids/1?deleted=true")
         .with_status(200)
@@ -110,7 +110,7 @@ fn dummy_to_dummy_with_sr_different_input_structs() {
     let avro_encoder = AvroEncoder::new(sr_settings);
 
     let stream = context
-        .dummy_2x::<TestStruct, AnotherTestStruct>(5, 1, 2)
+        .dummy_2x::<TestStruct, AnotherTestStruct>(5, 5, 1, 2)
         .deserialize(decoder)
         .transform(
             Some(MapperTestImpl::new()),

@@ -53,7 +53,7 @@ fn dummy_to_dummy_with_sr() {
     let avro_encoder = AvroEncoder::new(sr_settings);
 
     let stream = context
-        .dummy::<TestStruct>(4, 2, 1)
+        .dummy::<TestStruct>(50, 10, 1)
         .deserialize(decoder)
         .transform(
             Some(MapperTestImpl::new()),

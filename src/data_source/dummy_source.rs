@@ -25,6 +25,7 @@ where
     pub dummy_data_3: PhantomData<T3>,
     pub batch_size: u64,
     pub num_partitions: u64,
+    pub partitioned: bool,
     pub s_id1: u32,
     pub s_id2: u32,
     pub s_id3: u32,
@@ -50,6 +51,7 @@ where
             s_id1,
             s_id2,
             s_id3,
+            partitioned: false,
             batch_size,
             num_partitions,
         })
@@ -86,7 +88,10 @@ where
 {
     fn read_batch(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let mut rng = rand::thread_rng();
-        let partition_batch_size = max(1, self.batch_size / self.num_partitions);
+        let partition_batch_size = match self.partitioned {
+            true => max(1, self.batch_size / self.num_partitions),
+            false => self.batch_size,
+        };
         let split1 = rng.gen_range(0..partition_batch_size);
         let remaining = partition_batch_size - split1;
         let split2 = rng.gen_range(0..=remaining);
@@ -125,6 +130,7 @@ where
             s_id1: self.s_id1,
             s_id2: self.s_id2,
             s_id3: self.s_id3,
+            partitioned: true,
             batch_size: self.batch_size,
             num_partitions: self.num_partitions, // not set to 1 here, to be able to split the batch size properly
         })

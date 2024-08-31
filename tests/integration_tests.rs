@@ -62,7 +62,7 @@ fn dummy_to_dummy_with_sr() {
         )
         .write(vec![Arc::new(DummySink {})]);
 
-    context.execute_once(stream, false);
+    context.execute_once(stream, true);
 }
 
 #[test]
@@ -119,7 +119,7 @@ fn different_input_structs_with_sr() {
         )
         .write(vec![Arc::new(DummySink {})]);
 
-    context.execute_once(stream, false);
+    context.execute_once(stream, true);
 }
 
 // #[tokio::test(flavor = "multi_thread", worker_threads = 8)]

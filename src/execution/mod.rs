@@ -95,8 +95,6 @@ impl ExecutionContext {
 
     /// Execute the logical plan represented by a DataStream
     pub fn execute_once(&self, stream: Arc<dyn DataStream>, optimize: bool) {
-        // get
-        let optimize = true;
         let plan = if optimize {
             let plan = stream.action_plan();
             let optimized_plan = Optimizer::optimize(plan);

@@ -35,8 +35,13 @@ impl ExecutionContext {
         }
     }
 
-    pub fn kafka(&self, topic: String, client_config: ClientConfig) -> Arc<DataStreamImpl> {
-        let ds: Arc<dyn DataSource> = KafkaConsumer::new(client_config);
+    pub fn kafka(
+        &self,
+        topics: &[&str],
+        client_config: ClientConfig,
+        batch_size: usize,
+    ) -> Arc<DataStreamImpl> {
+        let ds: Arc<dyn DataSource> = KafkaConsumer::new(client_config, batch_size, topics);
         Arc::new(DataStreamImpl {
             plan: Some(Scan::new(ds)),
         })

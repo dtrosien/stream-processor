@@ -57,7 +57,6 @@ impl KafkaConsumer {
 impl DataSource for KafkaConsumer {
     fn read_batch(&self) -> Box<dyn Iterator<Item = Arc<dyn BatchContainer>> + '_> {
         let msg = (0..self.batch_size)
-            .into_iter()
             .filter_map(|_| self.consumer.poll(self.timeout))
             .take_while(|kr| {
                 match kr {
@@ -82,10 +81,15 @@ impl DataSource for KafkaConsumer {
             })
             .collect::<Vec<_>>();
 
-        let batch = Arc::new(Batch::Mixed(MixedBatch::Bytes(msg)));
-        let container: Arc<dyn BatchContainer> =
-            GenericBatchContainer::new(batch, None, HashMap::default());
-        Box::new(vec![container].into_iter())
+        let mut containers = Vec::new();
+
+        if !msg.is_empty() {
+            let batch = Arc::new(Batch::Mixed(MixedBatch::Bytes(msg)));
+            let container: Arc<dyn BatchContainer> =
+                GenericBatchContainer::new(batch, None, HashMap::default());
+            containers.push(container)
+        }
+        Box::new(containers.into_iter())
     }
 
     fn commit(&self) {
@@ -171,17 +175,24 @@ mod test {
             consumer_config,
             6,
             &[TOPIC],
-            Timeout::After(Duration::from_millis(400)),
+            Timeout::After(Duration::from_millis(100)),
         );
 
         let mut all_read_items = 0;
-        for i in 0..6 {
-            let batch = source.read_batch().next().unwrap().get_batch();
-
-            if let Batch::Mixed(MixedBatch::Bytes(items)) = batch.as_ref() {
-                all_read_items += items.len();
-                source.commit();
-            };
+        loop {
+            let batch = source
+                .read_batch()
+                .map(|container| container.get_batch())
+                .for_each(|batch| {
+                    if let Batch::Mixed(MixedBatch::Bytes(items)) = batch.as_ref() {
+                        // println!("Length {}", items.len());
+                        all_read_items += items.len();
+                        source.commit();
+                    };
+                });
+            if all_read_items == num_test_data {
+                break;
+            }
         }
 
         assert_eq!(all_read_items, num_test_data)
@@ -207,7 +218,7 @@ mod test {
             consumer_config,
             6,
             &[TOPIC],
-            Timeout::After(Duration::from_millis(500)),
+            Timeout::After(Duration::from_millis(100)),
         );
 
         assert_eq!(source.get_partitions().len(), num_partitions as usize)
@@ -236,7 +247,7 @@ mod test {
             consumer_config,
             6,
             &[TOPIC],
-            Timeout::After(Duration::from_millis(400)),
+            Timeout::After(Duration::from_millis(100)),
         ) as Arc<dyn DataSource>;
 
         let source2 = source1.recreate_partitioned("".to_string());
@@ -245,13 +256,20 @@ mod test {
 
         let mut all_read_items = 0;
 
-        for i in 0..4 {
+        loop {
             for source in sources.iter() {
-                let batch = source.read_batch().next().unwrap().get_batch();
-                if let Batch::Mixed(MixedBatch::Bytes(items)) = batch.as_ref() {
-                    all_read_items += items.len();
-                    source.commit();
-                };
+                let batch = source
+                    .read_batch()
+                    .map(|container| container.get_batch())
+                    .for_each(|batch| {
+                        if let Batch::Mixed(MixedBatch::Bytes(items)) = batch.as_ref() {
+                            all_read_items += items.len();
+                            source.commit();
+                        };
+                    });
+            }
+            if all_read_items == num_test_data {
+                break;
             }
         }
 

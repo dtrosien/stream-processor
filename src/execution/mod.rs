@@ -9,6 +9,7 @@ use apache_avro::AvroSchema;
 use fake::{Dummy, Faker};
 use log::info;
 use rayon::prelude::*;
+use rdkafka::util::Timeout;
 use rdkafka::ClientConfig;
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
@@ -40,8 +41,10 @@ impl ExecutionContext {
         topics: &[&str],
         client_config: ClientConfig,
         batch_size: usize,
+        timeout: Timeout,
     ) -> Arc<DataStreamImpl> {
-        let ds: Arc<dyn DataSource> = KafkaConsumer::new(client_config, batch_size, topics);
+        let ds: Arc<dyn DataSource> =
+            KafkaConsumer::new(client_config, batch_size, topics, timeout);
         Arc::new(DataStreamImpl {
             plan: Some(Scan::new(ds)),
         })

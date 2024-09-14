@@ -26,14 +26,14 @@ if ! docker ps --filter "name=kafka-community-small" --filter "status=running" |
 fi
 
 # Check and run azure containers and create test bucket
-if ! docker ps --filter "name=azurite" --filter "status=running" | grep -q 'azurite'; then
-  docker run --name azurite -d -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azure-storage/azurite
-fi
-
-if ! docker ps --filter "name=azure_cli" | grep -q 'azure_cli'; then
-  docker rm azure_cli
-  docker run --name azure_cli --net=host mcr.microsoft.com/azure-cli az storage container create -n test-bucket --connection-string 'DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;'
-fi
+#if ! docker ps --filter "name=azurite" --filter "status=running" | grep -q 'azurite'; then
+#  docker run --name azurite -d -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azure-storage/azurite
+#fi
+#
+#if ! docker ps --filter "name=azure_cli" | grep -q 'azure_cli'; then
+#  docker rm azure_cli
+#  docker run --name azure_cli --net=host mcr.microsoft.com/azure-cli az storage container create -n test-bucket --connection-string 'DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;'
+#fi
 
 ## Check and run aws containers and create test bucket
 #if ! docker ps --filter "name=localstack" --filter "status=running" | grep -q 'localstack'; then
